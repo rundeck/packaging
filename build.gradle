@@ -14,11 +14,16 @@ apply plugin: 'nebula.ospackage'
 
 import org.rundeck.gradle.PackageTask
 
-def pTask = task packageArtifacts(type: PackageTask) {
-    artifactPath = 'artifacts/rundeck.war'
+def pTask = task packageRundeck(type: PackageTask) {
+    artifactPath = "$projectDir/artifacts/rundeck.war"
     packageVersion = '1.1.1'
     packageRelease = '1'
     packageName = 'rundeck'
+}
+
+
+task packageArtifacts {
+    dependsOn packageRundeck
 }
 
 pTask.getOutputs().each { it.getFiles().each {
