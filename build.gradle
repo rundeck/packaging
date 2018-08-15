@@ -1,0 +1,22 @@
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'com.netflix.nebula:gradle-ospackage-plugin:4.4.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+    }
+}
+
+apply plugin: 'groovy'
+apply plugin: 'nebula.ospackage'
+
+import org.rundeck.gradle.PackageTask
+
+task packageArtifacts(type: PackageTask) {
+    artifactPath = 'artifacts/rundeck.war'
+    packageVersion = '1.1.1'
+    packageRelease = '1'
+}
