@@ -4,67 +4,99 @@ import java.util.jar.JarInputStream
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.Task
+import org.gradle.api.tasks.*
 
 class PackageTask extends DefaultTask {
-    String greeting = 'blah'
+
+    @Input
     String artifactPath
+
+    @Input
     String packageVersion
+
+    @Input
     String packageRelease
 
-    public PackageTask() {
-        println 'constructed!'
-        println artifactPath
-    }
+    @Input
+    String packageName
+
+    Task deb
+
+    Task rpm
 
     @TaskAction
-    def doPackage() {
+    doPackaging() {
+        deb.execute()
+        rpm.execute()
+    }
+
+    @Override
+    public Task configure(Closure closure) {
+        project.afterEvaluate({ -> afterProject()})
+
+        super.configure(closure)
+
+        configurePackaging()
+        this
+    }
+
+    def afterProject() {
+        println 'After!!!'
+    }
+
+    def configurePackaging() {
         project.pluginManager.apply('nebula.ospackage')
 
-        project.copy {
-            from project.zipTree(artifactPath)
-            into "$project.buildDir/warContents"
-        }
+        def warContentDir = "$project.buildDir/warContents/$packageName"
 
-        def contentDir = "$project.buildDir/cli"
-        def cliLibs = new File(contentDir, 'lib')
-        def cliBin = new File(contentDir, 'bin')
-        def cliTmp = new File(contentDir, 'tmp')
-        cliLibs.mkdirs()
-        cliBin.mkdirs()
-        cliTmp.mkdirs()
-        def coreJar = project.fileTree("$project.buildDir/warContents") {
-            include "WEB-INF/lib/rundeck-core-*.jar"
-        }.getSingleFile()
-        project.copy {
-            from coreJar
-            into cliLibs
-        }
-        //get cli tool lib list from manifest of core jar
-        def jar = new JarInputStream(coreJar.newInputStream())
-        def list = jar.manifest.mainAttributes.getValue('Rundeck-Tools-Dependencies')
-        list.split(' ').each { lib ->
+        def prepareTask = project.task("prepare-$packageName").doLast {
             project.copy {
-                from new File("$project.buildDir/warContents", "WEB-INF/lib/" + lib)
+                from project.zipTree(artifactPath)
+                into warContentDir
+            }
+
+            def contentDir = "$project.buildDir/cli"
+            def cliLibs = new File(contentDir, 'lib')
+            def cliBin = new File(contentDir, 'bin')
+            def cliTmp = new File(contentDir, 'tmp')
+            cliLibs.mkdirs()
+            cliBin.mkdirs()
+            cliTmp.mkdirs()
+            def coreJar = project.fileTree("$project.buildDir/warContents") {
+                include "WEB-INF/lib/rundeck-core-*.jar"
+            }.getSingleFile()
+            project.copy {
+                from coreJar
                 into cliLibs
             }
-        }
+            //get cli tool lib list from manifest of core jar
+            def jar = new JarInputStream(coreJar.newInputStream())
+            def list = jar.manifest.mainAttributes.getValue('Rundeck-Tools-Dependencies')
+            list.split(' ').each { lib ->
+                project.copy {
+                    from new File("$project.buildDir/warContents", "WEB-INF/lib/" + lib)
+                    into cliLibs
+                }
+            }
 
-        //copy cli templates
-        project.copy {
-            from project.zipTree(coreJar)
-            into cliTmp
-            include 'com/dtolabs/rundeck/core/cli/templates/*'
-            exclude '**/*.bat'
-        }
-        project.copy {
-            from new File(cliTmp, 'com/dtolabs/rundeck/core/cli/templates')
-            into cliBin
+            //copy cli templates
+            project.copy {
+                from project.zipTree(coreJar)
+                into cliTmp
+                include 'com/dtolabs/rundeck/core/cli/templates/*'
+                exclude '**/*.bat'
+            }
+            project.copy {
+                from new File(cliTmp, 'com/dtolabs/rundeck/core/cli/templates')
+                into cliBin
+            }
         }
 
         def bundle = [:]
         bundle.name = 'cluster'
         bundle.baseName = 'rundeck'
-        bundle.warContentDir = "$project.buildDir/warContents"
+        bundle.warContentDir = warContentDir
         bundle.rdBaseDir = "$project.buildDir/package"
         bundle.cliContentDir = "$project.buildDir/cli"
 
@@ -79,7 +111,7 @@ class PackageTask extends DefaultTask {
             packageGroup = 'System'
             summary = "Rundeck"
             packageDescription = "Rundeck"
-            packageName = bundle.baseName
+            packageName = packageName
             url = 'http://rundeck.com'
             vendor = 'Rundeck, Inc.'
 
@@ -145,7 +177,8 @@ class PackageTask extends DefaultTask {
             }
         }
 
-        def debBuild = project.buildDeb {
+        def debBuild = project.task("build-$packageName-deb", type: project.Deb, group: 'build') {
+            dependsOn prepareTask
             // Requirements
             requires('openssh-client')
             requires('java7-runtime').or('java7-runtime-headless').or('java8-runtime').or('java8-runtime-headless')
@@ -161,7 +194,7 @@ class PackageTask extends DefaultTask {
             // Install scripts
     //        preInstall ""
             postInstall project.file("deb/scripts/postinst")
-            if ("cluster" == bundle.name) {
+            if (packageName =~ /cluster/) {
                 postInstall project.file("deb/scripts/postinst-cluster")
             }
             preUninstall "service rundeckd stop"
@@ -174,9 +207,10 @@ class PackageTask extends DefaultTask {
                 into "/etc"
             }
         }
-        debBuild.copy()
 
-        def rpmBuild = project.buildRpm {
+        def rpmBuild = project.task("build-$packageName-rpm", type: project.Rpm, group: 'build') {
+            dependsOn prepareTask
+
             requires('chkconfig')
             requires('initscripts')
             requires("openssh")
@@ -185,7 +219,7 @@ class PackageTask extends DefaultTask {
             // Install scripts
             preInstall project.file("rpm/scripts/preinst.sh")
             postInstall project.file("rpm/scripts/postinst.sh")
-            if ("cluster" == bundle.name) {
+            if (packageName =~ /cluster/) {
                 postInstall project.file("rpm/scripts/postinst-cluster.sh")
             }
             preUninstall project.file("rpm/scripts/preuninst.sh")
@@ -205,8 +239,16 @@ class PackageTask extends DefaultTask {
                 into "${rdConfDir}"
             }
         }
-        rpmBuild.copy()
 
-        println rpmBuild.outputs
+        rpm = rpmBuild
+        deb = debBuild
+
+        debBuild.getOutputs().each { it.getFiles().each {
+            outputs.file it
+        }}
+
+        rpmBuild.getOutputs().each { it.getFiles().each {
+            outputs.file it
+        }}
     }
 }

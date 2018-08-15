@@ -1,0 +1,4 @@
+.gradle
+artifacts
+build
+ci-resources

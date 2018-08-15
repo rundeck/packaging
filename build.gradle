@@ -1,4 +1,3 @@
-
 buildscript {
     repositories {
         jcenter()
@@ -15,8 +14,13 @@ apply plugin: 'nebula.ospackage'
 
 import org.rundeck.gradle.PackageTask
 
-task packageArtifacts(type: PackageTask) {
+def pTask = task packageArtifacts(type: PackageTask) {
     artifactPath = 'artifacts/rundeck.war'
     packageVersion = '1.1.1'
     packageRelease = '1'
+    packageName = 'rundeck'
 }
+
+pTask.getOutputs().each { it.getFiles().each {
+    println it
+}}
