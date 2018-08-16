@@ -19,6 +19,7 @@ def pTask = task packageRundeck(type: PackageTask) {
     packageVersion = '1.1.1'
     packageRelease = '1'
     packageName = 'rundeck'
+    packageDescription = 'Rundeck!!!!'
 }
 
 

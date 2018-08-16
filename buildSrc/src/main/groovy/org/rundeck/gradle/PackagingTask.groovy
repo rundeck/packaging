@@ -10,6 +10,12 @@ import org.gradle.api.tasks.*
 class PackageTask extends DefaultTask {
 
     @Input
+    String packageName
+
+    @Input
+    String packageDescription
+
+    @Input
     String artifactPath
 
     @Input
@@ -18,12 +24,15 @@ class PackageTask extends DefaultTask {
     @Input
     String packageRelease
 
-    @Input
-    String packageName
+    String warContentDir
+    String cliContentDir
 
     Task deb
 
     Task rpm
+
+    def rdConfDir = "/etc/rundeck"
+    def rdBaseDir = "/var/lib/rundeck"
 
     @TaskAction
     doPackaging() {
@@ -37,19 +46,98 @@ class PackageTask extends DefaultTask {
 
         super.configure(closure)
 
+        warContentDir = "$project.buildDir/warContents/$packageName"
+        cliContentDir = "$project.buildDir/cli/$packageName"
+
         configurePackaging()
         this
     }
 
-    def afterProject() {
-        println 'After!!!'
+    /** Called after project configuration **/
+    def afterProject() {}
+
+    def applySharedConfig(delegate) {
+        def sharedConfig = {
+            packageName = 'rundeck'
+            // version = packageVersion
+            release = packageRelease
+            os = LINUX
+            packageGroup = 'System'
+            summary = "Rundeck"
+            packageDescription = "Rundeck"
+            packageName = packageName
+            url = 'http://rundeck.com'
+            vendor = 'Rundeck, Inc.'
+
+            user = "rundeck"
+            permissionGroup = "rundeck"
+
+            into "$project.buildDir/packages"
+
+            signingKeyId = project.findProperty('signingKeyId')
+            signingKeyPassphrase = project.findProperty('signingPassword')
+            signingKeyRingFile = project.findProperty('signingKeyRingFile')
+
+            // Create Dirs
+            directory("/etc/rundeck", 0750)
+            directory("/var/log/rundeck", 0775)
+            directory("/var/lib/rundeck", 0755)
+            directory("/var/lib/rundeck/.ssh", 0700)
+            directory("/var/lib/rundeck/bootstrap", 0755)
+            directory("/var/lib/rundeck/cli", 0755)
+            directory("/var/lib/rundeck/cli/lib", 0755)
+            directory("/var/lib/rundeck/cli/bin", 0755)
+            directory("/var/lib/rundeck/logs", 0755)
+            directory("/var/lib/rundeck/data", 0755)
+            directory("/var/lib/rundeck/work", 0755)
+            directory("/var/lib/rundeck/libext", 0755)
+            directory("/var/lib/rundeck/var", 0755)
+            directory("/var/lib/rundeck/var/tmp", 0755)
+            directory("/var/lib/rundeck/var/tmp/pluginJars", 0755)
+            directory("/var/rundeck", 0755)
+            directory("/var/rundeck/projects", 0755)
+            directory("/tmp/rundeck", 1755)
+            directory("/var/lib/rundeck/libext", 0755)
+
+            from("lib/common/etc/rundeck") {
+                fileType it.CONFIG | it.NOREPLACE
+                fileMode 0640
+                into "${rdConfDir}"
+            }
+
+            from("artifacts") {
+                include "*.war"
+                into "${rdBaseDir}/bootstrap"
+            }
+
+            from("$warContentDir/WEB-INF/rundeck/plugins") {
+                include "*.jar"
+                include "*.zip"
+                include "*.groovy"
+                into "${rdBaseDir}/libext"
+            }
+
+            from("$cliContentDir/bin") {
+                into "$rdBaseDir/cli/bin"
+            }
+
+            from("$cliContentDir/lib") {
+                into "$rdBaseDir/cli/lib"
+            }
+            def tools = new File(cliContentDir, "bin").listFiles()*.name
+
+            tools.each { tool ->
+                link("/usr/bin/$tool", "$rdBaseDir/cli/bin/$tool")
+            }
+        }
+
+        sharedConfig.resolveStrategy = Closure.DELEGATE_FIRST
+        sharedConfig.delegate = delegate
+        sharedConfig()
     }
 
     def configurePackaging() {
         project.pluginManager.apply('nebula.ospackage')
-
-        def warContentDir = "$project.buildDir/warContents/$packageName"
-        def cliDir = "$project.buildDir/cli/$packageName"
 
         def prepareTask = project.task("prepare-$packageName").doLast {
             project.copy {
@@ -57,7 +145,7 @@ class PackageTask extends DefaultTask {
                 into warContentDir
             }
 
-            def contentDir = cliDir
+            def contentDir = cliContentDir
             def cliLibs = new File(contentDir, 'lib')
             def cliBin = new File(contentDir, 'bin')
             def cliTmp = new File(contentDir, 'tmp')
@@ -96,95 +184,13 @@ class PackageTask extends DefaultTask {
 
         def bundle = [:]
         bundle.name = 'cluster'
-        bundle.baseName = 'rundeck'
-        bundle.warContentDir = warContentDir
         bundle.rdBaseDir = "$project.buildDir/package"
         bundle.cliContentDir = "$project.buildDir/cli"
-
-        def rdBaseDir = "/var/lib/rundeck"
-        def rdConfDir = "/etc/rundeck"
-
-        def sharedConfig = { it ->
-            println 'shared'
-            println it
-
-            it.packageName = 'rundeck'
-            // version = packageVersion
-            it.release = packageRelease
-            it.os = it.LINUX
-            it.packageGroup = 'System'
-            it.summary = "Rundeck"
-            it.packageDescription = "Rundeck"
-            it.packageName = packageName
-            it.url = 'http://rundeck.com'
-            it.vendor = 'Rundeck, Inc.'
-
-            it.user = "rundeck"
-            it.permissionGroup = "rundeck"
-
-            it.into "$project.buildDir/packages"
-
-            it.signingKeyId = project.findProperty('signingKeyId')
-            it.signingKeyPassphrase = project.findProperty('signingPassword')
-            it.signingKeyRingFile = project.findProperty('signingKeyRingFile')
-
-            // Create Dirs
-            it.directory("/etc/rundeck", 0750)
-            it.directory("/var/log/rundeck", 0775)
-            it.directory("/var/lib/rundeck", 0755)
-            it.directory("/var/lib/rundeck/.ssh", 0700)
-            it.directory("/var/lib/rundeck/bootstrap", 0755)
-            it.directory("/var/lib/rundeck/cli", 0755)
-            it.directory("/var/lib/rundeck/cli/lib", 0755)
-            it.directory("/var/lib/rundeck/cli/bin", 0755)
-            it.directory("/var/lib/rundeck/logs", 0755)
-            it.directory("/var/lib/rundeck/data", 0755)
-            it.directory("/var/lib/rundeck/work", 0755)
-            it.directory("/var/lib/rundeck/libext", 0755)
-            it.directory("/var/lib/rundeck/var", 0755)
-            it.directory("/var/lib/rundeck/var/tmp", 0755)
-            it.directory("/var/lib/rundeck/var/tmp/pluginJars", 0755)
-            it.directory("/var/rundeck", 0755)
-            it.directory("/var/rundeck/projects", 0755)
-            it.directory("/tmp/rundeck", 1755)
-            it.directory("/var/lib/rundeck/libext", 0755)
-
-            it.from("lib/common/etc/rundeck") {
-                fileType it.CONFIG | it.NOREPLACE
-                fileMode 0640
-                into "${rdConfDir}"
-            }
-
-            it.from("artifacts") {
-                include "*.war"
-                into "${rdBaseDir}/bootstrap"
-            }
-
-            it.from("${bundle.warContentDir}/WEB-INF/rundeck/plugins") {
-                include "*.jar"
-                include "*.zip"
-                include "*.groovy"
-                into "${rdBaseDir}/libext"
-            }
-
-            it.from("${bundle.cliContentDir}/bin") {
-                into "$rdBaseDir/cli/bin"
-            }
-
-            it.from("${bundle.cliContentDir}/lib") {
-                into "$rdBaseDir/cli/lib"
-            }
-            def tools = new File(bundle.cliContentDir, "bin").listFiles()*.name
-
-            tools.each { tool ->
-                it.link("/usr/bin/$tool", "$rdBaseDir/cli/bin/$tool")
-            }
-        }
 
         def debBuild = project.task("build-$packageName-deb", type: project.Deb, group: 'build') {
             dependsOn prepareTask
 
-            sharedConfig(it)
+            applySharedConfig(it)
 
             // Requirements
             requires('openssh-client')
@@ -199,7 +205,6 @@ class PackageTask extends DefaultTask {
             configurationFile('/etc/rundeck/profile')
 
             // Install scripts
-    //        preInstall ""
             postInstall project.file("lib/deb/scripts/postinst")
             if (packageName =~ /cluster/) {
                 postInstall project.file("lib/deb/scripts/postinst-cluster")
@@ -218,7 +223,7 @@ class PackageTask extends DefaultTask {
         def rpmBuild = project.task("build-$packageName-rpm", type: project.Rpm, group: 'build') {
             dependsOn prepareTask
 
-            sharedConfig(it)
+            applySharedConfig(it)
 
             requires('chkconfig')
             requires('initscripts')
