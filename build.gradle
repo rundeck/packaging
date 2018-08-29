@@ -20,6 +20,7 @@ def pTask = task packageRundeck(type: PackageTask) {
     packageRelease = '1'
     packageName = 'rundeck'
     packageDescription = 'Rundeck!!!!'
+    libDir = "$projectDir/packaging/lib"
 }
 
 

@@ -24,6 +24,9 @@ class PackageTask extends DefaultTask {
     @Input
     String packageRelease
 
+    @Input
+    String libDir
+
     String warContentDir
     String cliContentDir
 
@@ -59,7 +62,7 @@ class PackageTask extends DefaultTask {
     def applySharedConfig(delegate) {
         def sharedConfig = {
             packageName = 'rundeck'
-            // version = packageVersion
+            version = packageVersion
             release = packageRelease
             os = LINUX
             packageGroup = 'System'
@@ -99,7 +102,7 @@ class PackageTask extends DefaultTask {
             directory("/tmp/rundeck", 1755)
             directory("/var/lib/rundeck/libext", 0755)
 
-            from("lib/common/etc/rundeck") {
+            from("$libDir/common/etc/rundeck") {
                 fileType it.CONFIG | it.NOREPLACE
                 fileMode 0640
                 into "${rdConfDir}"
@@ -139,7 +142,14 @@ class PackageTask extends DefaultTask {
     def configurePackaging() {
         project.pluginManager.apply('nebula.ospackage')
 
-        def prepareTask = project.task("prepare-$packageName").doLast {
+        def prepareTask = project.task("prepare-$packageName") {
+            inputs.file artifactPath
+
+            outputs.dir cliContentDir
+            outputs.dir warContentDir
+
+        }
+        prepareTask.doLast {
             project.copy {
                 from project.zipTree(artifactPath)
                 into warContentDir
@@ -205,16 +215,16 @@ class PackageTask extends DefaultTask {
             configurationFile('/etc/rundeck/profile')
 
             // Install scripts
-            postInstall project.file("lib/deb/scripts/postinst")
+            postInstall project.file("$libDir/deb/scripts/postinst")
             if (packageName =~ /cluster/) {
-                postInstall project.file("lib/deb/scripts/postinst-cluster")
+                postInstall project.file("$libDir/deb/scripts/postinst-cluster")
             }
             preUninstall "service rundeckd stop"
-            postUninstall project.file("lib/deb/scripts/postrm")
+            postUninstall project.file("$libDir/deb/scripts/postrm")
 
             // Copy Files
 
-            from("lib/deb/etc") {
+            from("$libDir/deb/etc") {
                 fileType CONFIG | NOREPLACE
                 into "/etc"
             }
@@ -231,23 +241,23 @@ class PackageTask extends DefaultTask {
             requires('openssl')
 
             // Install scripts
-            preInstall project.file("lib/rpm/scripts/preinst.sh")
-            postInstall project.file("lib/rpm/scripts/postinst.sh")
+            preInstall project.file("$libDir/rpm/scripts/preinst.sh")
+            postInstall project.file("$libDir/rpm/scripts/postinst.sh")
             if (packageName =~ /cluster/) {
-                postInstall project.file("lib/rpm/scripts/postinst-cluster.sh")
+                postInstall project.file("$libDir/rpm/scripts/postinst-cluster.sh")
             }
-            preUninstall project.file("lib/rpm/scripts/preuninst.sh")
-            postUninstall project.file("lib/rpm/scripts/postuninst.sh")
+            preUninstall project.file("$libDir/rpm/scripts/preuninst.sh")
+            postUninstall project.file("$libDir/rpm/scripts/postuninst.sh")
 
             // Copy Files
-            from("lib/rpm/etc/rc.d/init.d/rundeckd") {
+            from("$libDir/rpm/etc/rc.d/init.d/rundeckd") {
                 fileMode 0755
                 user = "root"
                 permissionGroup = "root"
                 into "/etc/rc.d/init.d"
             }
 
-            from("lib/rpm/etc/rundeck") {
+            from("$libDir/rpm/etc/rundeck") {
                 fileType CONFIG | NOREPLACE
                 fileMode 0640
                 into "${rdConfDir}"
