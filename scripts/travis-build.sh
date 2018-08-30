@@ -6,8 +6,12 @@ set -xeuo pipefail
 
 shopt -s globstar
 
+
+UPSTREAM_ARTIFACT_BASE=${UPSTREAM_ARTIFACT_BASE:-s3://rundeck-travis-artifacts/oss}
+UPSTREAM_PROJECT=${UPSTREAM_PROJECT:-rundeck}
+
 main() {
-    S3_ARTIFACT_BASE=s3://rundeck-travis-artifacts/oss/${UPSTREAM_PROJECT:-rundeck}
+    S3_ARTIFACT_BASE=${UPSTREAM_ARTIFACT_BASE}/${UPSTREAM_PROJECT:-rundeck}
 
     # Location of CI resources such as private keys
     S3_CI_RESOURCES="s3://rundeck-ci/shared/resources"
