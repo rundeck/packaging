@@ -9,6 +9,9 @@ shopt -s globstar
 main() {
     S3_ARTIFACT_BASE=s3://rundeck-travis-artifacts/oss/${UPSTREAM_PROJECT:-rundeck}
 
+    # Location of CI resources such as private keys
+    S3_CI_RESOURCES="s3://rundeck-ci/shared/resources"
+
     # Determine build context
     # snapshot | release
     if [[ ! -z "${UPSTREAM_TAG}" ]] ; then
@@ -36,16 +39,18 @@ build() {
     test -d artifacts || mkdir artifacts
 
     if [[ "${BUILD_TYPE}" == "release" ]] ; then
-        aws s3 sync "${S3_TAG_ARTIFACT_PATH}" upstream-artifacts
+        aws s3 sync --delete "${S3_TAG_ARTIFACT_PATH}" upstream-artifacts
     else
-        aws s3 sync "${S3_BUILD_ARTIFACT_PATH}" upstream-artifacts
+        aws s3 sync --delete "${S3_BUILD_ARTIFACT_PATH}" upstream-artifacts
     fi
+
+    aws s3 sync --delete "${S3_CI_RESOURCES}" ci-resources
 
     PATTERN="upstream-artifacts/**/*.war"
     WARS=( $PATTERN )
     cp "${WARS[@]}" artifacts/
 
-    ./gradlew -PpackageRelease=$RELEASE_NUM packageArtifacts
+    ./gradlew -PpackageRelease=$RELEASE_NUM clean packageArtifacts
 }
 
 (
