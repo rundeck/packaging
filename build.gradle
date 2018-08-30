@@ -5,29 +5,100 @@ buildscript {
 
     dependencies {
         classpath 'com.netflix.nebula:gradle-ospackage-plugin:4.4.0'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
     }
 }
 
 apply plugin: 'groovy'
+apply plugin: 'com.jfrog.bintray'
 apply plugin: 'nebula.ospackage'
 
 import org.rundeck.gradle.PackageTask
 
-def pTask = task packageRundeck(type: PackageTask) {
-    artifactPath = "$projectDir/artifacts/rundeck.war"
-    packageVersion = '1.1.1'
-    packageRelease = '1'
-    packageName = 'rundeck'
-    packageDescription = 'Rundeck!!!!'
-    libDir = "$projectDir/packaging/lib"
+def pPrefix = findProperty('packagePrefix')?: ""
+def pOrg = findProperty('packageOrg')?: "rundeck"
+def pType = findProperty('packageType')
+def pBundle = findProperty('packageBundle')?: "rundeck"
+def pRelease = findProperty('packageRelease')?: "1"
+
+
+def artifacts = fileTree('artifacts')
+
+
+def fileVersionInfo(file) {
+    def m = file.name =~ /rundeck(pro)?-(?<bundle>[a-zA-Z]+)?-?(?<version>\d.+?)-((?<tag>[a-zA-Z][a-zA-Z0-9]+)-?)?(?<date>\d.+?)?\.war$/
+    if(! m.matches()) {
+        throw new GradleException("Unable to parse version [${version}]!".toString())
+    }
+
+    def info = [
+        num: m.group('version'),
+        tag: m.group('tag'),
+        date: m.group('date'),
+        bundle: m.group('bundle'),
+    ]
+
+    info.package = info.bundle != null ? info.bundle : 'rundeck'
+
+    def fullVersion = info.num
+    fullVersion += info.date != null ? ".$info.date" : ""
+    fullVersion += info.tag != null ? "~$info.tag" : ""
+
+    info.version = fullVersion
+    return info
 }
 
+task packageArtifacts{}
+def firstFile = artifacts.getFiles().each { file ->
+    def fileVersion = fileVersionInfo(file)
 
-task packageArtifacts {
-    dependsOn packageRundeck
+    def pTask = task "packageRundeck-$file.name"(type: PackageTask) {
+        artifactPath = file.path
+        packageVersion = fileVersion.version
+        packageRelease = pRelease
+        packageName = 'rundeck'
+        packageDescription = 'Rundeck!!!!'
+        libDir = "$projectDir/lib"
+    }
+
+    packageArtifacts.dependsOn pTask
 }
 
-pTask.getOutputs().each { it.getFiles().each {
-    println it
-}}
+/**
+ * Bintray upload stuffs follows. Unfortunately due to the plugin design, only one per project will work.
+ * Gradle must be called for each package type(deb, rpm) for each bundle type.
+*/
+
+def vInfo = fileVersionInfo(artifacts.getFiles()[0])
+
+println vInfo
+
+def repoPrefix = pPrefix
+if (vInfo.tag == 'SNAPSHOT') {
+    repoPrefix = 'dev-'
+} else if (vInfo.tag != null ) {
+    repoPrefix = 'test-'
+}
+
+bintray {
+    user = findProperty("bintrayUser")
+    key = findProperty("bintrayApiKey")
+    publish = true
+    dryRun = (findProperty('dryRun') ?: 'true').toBoolean()
+
+    filesSpec {
+        from "$buildDir/distributions"
+        include "*$pBundle*.$pType"
+        into "."
+    }
+
+    pkg {
+        repo = "${repoPrefix}${pType}"
+        name = pBundle
+        userOrg = pOrg
+
+        version {
+            name = vInfo.version
+        }
+    }
+}
