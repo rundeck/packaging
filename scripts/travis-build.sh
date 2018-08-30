@@ -6,7 +6,7 @@ set -xeuo pipefail
 
 shopt -s globstar
 
-
+UPSTREAM_TAG=${UPSTREAM_TAG:-}
 UPSTREAM_ARTIFACT_BASE=${UPSTREAM_ARTIFACT_BASE:-s3://rundeck-travis-artifacts/oss}
 UPSTREAM_PROJECT=${UPSTREAM_PROJECT:-rundeck}
 
