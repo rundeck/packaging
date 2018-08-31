@@ -26,20 +26,18 @@ main() {
 
     # Possible artifact locations
     S3_LATEST_ARTIFACT_PATH="${S3_ARTIFACT_BASE}/branch/master/latest/artifacts"
-    S3_BUILD_ARTIFACT_PATH="${S3_ARTIFACT_BASE}/branch/${RUNDECK_BRANCH:-master}/build/${UPSTREAM_BUILD_NUMBER:-}/artifacts"
+    S3_BUILD_ARTIFACT_PATH="${S3_ARTIFACT_BASE}/branch/${UPSTREAM_BRANCH:-master}/build/${UPSTREAM_BUILD_NUMBER:-}/artifacts"
     S3_TAG_ARTIFACT_PATH="${S3_ARTIFACT_BASE}/tag/${UPSTREAM_TAG}/artifacts"
 
     local COMMAND="${1}"
     shift
 
     case "${COMMAND}" in
-        build) build "${@}" ;;
+        fetch_artifacts) fetch_artifacts "${@}" ;;
     esac
 }
 
-build() {
-    local RELEASE_NUM="${1:-1}"
-
+fetch_artifacts() {
     test -d artifacts || mkdir artifacts
 
     if [[ "${BUILD_TYPE}" == "release" ]] ; then
@@ -53,8 +51,6 @@ build() {
     PATTERN="upstream-artifacts/**/*.war"
     WARS=( $PATTERN )
     cp "${WARS[@]}" artifacts/
-
-    ./gradlew -PpackageRelease=$RELEASE_NUM clean packageArtifacts
 }
 
 (

@@ -60,15 +60,15 @@ class PackageTask extends DefaultTask {
     def afterProject() {}
 
     def applySharedConfig(delegate) {
+        def providedPackageName = packageName
         def sharedConfig = {
-            packageName = 'rundeck'
+            packageName = providedPackageName
             version = packageVersion
             release = packageRelease
             os = LINUX
             packageGroup = 'System'
             summary = "Rundeck"
             packageDescription = "Rundeck"
-            packageName = packageName
             url = 'http://rundeck.com'
             vendor = 'Rundeck, Inc.'
 

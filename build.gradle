@@ -20,25 +20,30 @@ def pOrg = findProperty('packageOrg')?: "rundeck"
 def pType = findProperty('packageType')
 def pBundle = findProperty('packageBundle')?: "rundeck"
 def pRelease = findProperty('packageRelease')?: "1"
+def pInclude = findProperty('packageInclude')?: ".*"
 
 
-def artifacts = fileTree('artifacts')
-
+def artifacts = fileTree('artifacts').matching {
+    include {
+        it.file.name ==~ pInclude
+    }
+}
 
 def fileVersionInfo(file) {
-    def m = file.name =~ /rundeck(pro)?-(?<bundle>[a-zA-Z]+)?-?(?<version>\d.+?)-((?<tag>[a-zA-Z][a-zA-Z0-9]+)-?)?(?<date>\d.+?)?\.war$/
+    def m = file.name =~ /(?<flavor>rundeck(pro)?)-(?<bundle>[a-zA-Z]+)?-?(?<version>\d.+?)-((?<tag>[a-zA-Z][a-zA-Z0-9]+)-?)?(?<date>\d.+?)?\.war$/
     if(! m.matches()) {
         throw new GradleException("Unable to parse version [${version}]!".toString())
     }
 
     def info = [
+        flavor: m.group('flavor'),
         num: m.group('version'),
         tag: m.group('tag'),
         date: m.group('date'),
         bundle: m.group('bundle'),
     ]
 
-    info.package = info.bundle != null ? info.bundle : 'rundeck'
+    info.package = info.bundle != null ? "$info.flavor-$info.bundle" : info.flavor
 
     def fullVersion = info.num
     fullVersion += info.date != null ? ".$info.date" : ""
@@ -48,6 +53,9 @@ def fileVersionInfo(file) {
     return info
 }
 
+def vInfo = fileVersionInfo(artifacts.getFiles()[0])
+println vInfo
+
 task packageArtifacts{}
 def firstFile = artifacts.getFiles().each { file ->
     def fileVersion = fileVersionInfo(file)
@@ -56,7 +64,7 @@ def firstFile = artifacts.getFiles().each { file ->
         artifactPath = file.path
         packageVersion = fileVersion.version
         packageRelease = pRelease
-        packageName = 'rundeck'
+        packageName = fileVersion.package
         packageDescription = 'Rundeck!!!!'
         libDir = "$projectDir/lib"
     }
@@ -68,10 +76,6 @@ def firstFile = artifacts.getFiles().each { file ->
  * Bintray upload stuffs follows. Unfortunately due to the plugin design, only one per project will work.
  * Gradle must be called for each package type(deb, rpm) for each bundle type.
 */
-
-def vInfo = fileVersionInfo(artifacts.getFiles()[0])
-
-println vInfo
 
 def repoPrefix = pPrefix
 if (vInfo.tag == 'SNAPSHOT') {
