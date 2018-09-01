@@ -40,17 +40,21 @@ check_env(){
 list_rpms(){
     local FARGS=("$@")
     local DIR=${FARGS[0]}
-    ls $DIR/*.rpm
+    local PATTERN="${DIR}/*.rpm"
+    echo $PATTERN
 }
 
 list_debs(){
     local FARGS=("$@")
     local DIR=${FARGS[0]}
-    ls $DIR/*.deb
+    local PATTERN="${DIR}/*.deb"
+    echo $PATTERN
 }
 
 sign_rpms(){
     local RPMS=$(list_rpms $DIST_DIR)
+    echo "=======RPMS======="
+    echo $RPMS
     export GNUPGHOME=$GPG_PATH
     expect - -- $GPG_PATH $SIGNING_KEYID $SIGNING_PASSWORD  <<END
 spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$argv 0]" --define "__gpg_sign_cmd %{__gpg} gpg --force-v3-sigs --digest-algo=sha1 --batch --no-verbose --passphrase-fd 3 --no-secmem-warning -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}" --addsign $RPMS
@@ -71,13 +75,9 @@ sign_debs(){
     expect - -- $GPG_PATH $SIGNING_KEYID $SIGNING_PASSWORD  <<END
 spawn dpkg-sig --gpg-options "-u [lindex \$argv 1] --secret-keyring ci-resources/secring.gpg" --sign builder $DEBS
 expect {
-    -re "Enter pass *phrase: *" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; }
+    "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; exp_continue }
     eof { catch wait rc; exit [lindex \$rc 3]; }
-    timeout { close; exit; }
-}
-expect {
-eof { catch wait rc; exit [lindex \$rc 3]; }
-timeout close
+    timeout { exit 1 }
 }
 END
 }
