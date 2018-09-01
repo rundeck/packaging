@@ -74,10 +74,11 @@ sign_debs(){
     local DEBS=$(list_debs $DIST_DIR)
     expect - -- $GPG_PATH $SIGNING_KEYID $SIGNING_PASSWORD  <<END
 spawn dpkg-sig --gpg-options "-u [lindex \$argv 1] --secret-keyring ci-resources/secring.gpg" --sign builder $DEBS
+set timeout 60
 expect {
     "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; exp_continue }
     eof { catch wait rc; exit [lindex \$rc 3]; }
-    timeout { exit 1 }
+    timeout { puts "Timed out!"; exit 1 }
 }
 END
 }
