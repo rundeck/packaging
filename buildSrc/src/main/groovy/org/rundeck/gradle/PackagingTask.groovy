@@ -59,6 +59,10 @@ class PackageTask extends DefaultTask {
     /** Called after project configuration **/
     def afterProject() {}
 
+    /**
+     * Only one ospackage can be defined and it applies globally.
+     * We can build multiple packages in one go so apply our own config via lambda.
+    */
     def applySharedConfig(delegate) {
         def providedPackageName = packageName
         def sharedConfig = {
