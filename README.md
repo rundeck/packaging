@@ -18,6 +18,16 @@ Consolidated deb and rpm packaging and signing.
 **Outputs:**  
 `build/distributions/*.{deb,rpm}`
 
+### Sign
+> **NOTE:** The redline Java rpm library used by ospackage will not sign
+with our key lengh(stack overflow). For the reason we go ahead and utilize
+expect for signing both rpm and deb packages.
+
+With the proper envars exported:
+```bash
+bash packaging/scripts/sign-packages.sh
+```
+
 ### Publish
 > **NOTE:** The Bintray Gradle plugin has few rough edges due to its
 implementation. Among them, only one package upload per project appears
