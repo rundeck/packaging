@@ -40,7 +40,7 @@ main() {
 
     case "${COMMAND}" in
         fetch_artifacts) fetch_artifacts "${@}" ;;
-        test) test "${@}" ;;
+        test) test_packages "${@}" ;;
     esac
 }
 
@@ -60,7 +60,7 @@ fetch_artifacts() {
     cp "${WARS[@]}" artifacts/
 }
 
-test() {
+test_packages() {
     bash test/test-docker-install-deb.sh
     bash test/test-docker-install-rpm.sh
 }
