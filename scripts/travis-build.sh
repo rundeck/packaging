@@ -2,6 +2,12 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
+DRY_RUN="${DRY_RUN:-true}"
+S3_DRY_RUN="--dryrun"
+if [[ "$DRY_RUN" != true ]] ; then
+    S3_DRY_RUN=""
+fi
+
 set -xeuo pipefail
 
 shopt -s globstar
@@ -34,6 +40,7 @@ main() {
 
     case "${COMMAND}" in
         fetch_artifacts) fetch_artifacts "${@}" ;;
+        test) test "${@}" ;;
     esac
 }
 
@@ -51,6 +58,11 @@ fetch_artifacts() {
     PATTERN="upstream-artifacts/**/*.war"
     WARS=( $PATTERN )
     cp "${WARS[@]}" artifacts/
+}
+
+test() {
+    bash test/test-docker-install-deb.sh
+    bash test/test-docker-install-rpm.sh
 }
 
 (
