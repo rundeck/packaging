@@ -1,3 +1,6 @@
+set -eo pipefail
+shopt -s globstar
+
 # Wraps bash command in code folding and timing "stamps"
 script_block() {
     local NAME="${1}"; shift;
