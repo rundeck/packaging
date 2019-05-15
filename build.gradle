@@ -105,4 +105,10 @@ bintray {
             name = vInfo.version
         }
     }
+
+    debian {
+        distribution = 'stable'
+        component = 'main'
+        architecture = 'all'
+    }
 }
