@@ -104,11 +104,11 @@ bintray {
         version {
             name = vInfo.version
         }
-    }
 
-    debian {
-        distribution = 'stable'
-        component = 'main'
-        architecture = 'all'
+        debian {
+            distribution = 'stable'
+            component = 'main'
+            architecture = 'all'
+        }
     }
 }
