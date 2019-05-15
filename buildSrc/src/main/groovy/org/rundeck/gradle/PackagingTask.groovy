@@ -220,7 +220,7 @@ class PackageTask extends DefaultTask {
 
             // Install scripts
             postInstall project.file("$libDir/deb/scripts/postinst")
-            if (packageName =~ /cluster/) {
+            if (packageName =~ /enterprise/) {
                 postInstall project.file("$libDir/deb/scripts/postinst-cluster")
             }
             preUninstall "service rundeckd stop"
@@ -247,7 +247,7 @@ class PackageTask extends DefaultTask {
             // Install scripts
             preInstall project.file("$libDir/rpm/scripts/preinst.sh")
             postInstall project.file("$libDir/rpm/scripts/postinst.sh")
-            if (packageName =~ /cluster/) {
+            if (packageName =~ /enterprise/) {
                 postInstall project.file("$libDir/rpm/scripts/postinst-cluster.sh")
             }
             preUninstall project.file("$libDir/rpm/scripts/preuninst.sh")
