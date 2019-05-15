@@ -8,7 +8,7 @@ if [[ "$DRY_RUN" != true ]] ; then
     S3_DRY_RUN=""
 fi
 
-set -xeuo pipefail
+set -euo pipefail
 
 shopt -s globstar
 
