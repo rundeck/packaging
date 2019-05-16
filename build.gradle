@@ -88,6 +88,7 @@ bintray {
     user = findProperty("bintrayUser")
     key = findProperty("bintrayApiKey")
     publish = true
+    override = vInfo.tag == 'SNAPSHOT' ? true : false
     dryRun = (findProperty('dryRun') ?: 'true').toBoolean()
 
     filesSpec {
