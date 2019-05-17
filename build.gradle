@@ -61,7 +61,7 @@ def firstFile = artifacts.getFiles().each { file ->
     def fileVersion = fileVersionInfo(file)
 
     def pTask = task "packageRundeck-$file.name"(type: PackageTask) {
-        artifactPath = file.path
+        artifact = file
         packageVersion = fileVersion.version
         packageRelease = pRelease
         packageName = fileVersion.package

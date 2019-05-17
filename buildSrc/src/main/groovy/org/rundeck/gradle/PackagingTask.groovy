@@ -16,7 +16,7 @@ class PackageTask extends DefaultTask {
     String packageDescription
 
     @Input
-    String artifactPath
+    File artifact
 
     @Input
     String packageVersion
@@ -113,7 +113,7 @@ class PackageTask extends DefaultTask {
             }
 
             from("artifacts") {
-                include "*.war"
+                include "${artifact.name}"
                 into "${rdBaseDir}/bootstrap"
             }
 
@@ -147,7 +147,7 @@ class PackageTask extends DefaultTask {
         project.pluginManager.apply('nebula.ospackage')
 
         def prepareTask = project.task("prepare-$packageName") {
-            inputs.file artifactPath
+            inputs.file artifact.path
 
             outputs.dir cliContentDir
             outputs.dir warContentDir
@@ -155,7 +155,7 @@ class PackageTask extends DefaultTask {
         }
         prepareTask.doLast {
             project.copy {
-                from project.zipTree(artifactPath)
+                from project.zipTree(artifact.path)
                 into warContentDir
             }
 
