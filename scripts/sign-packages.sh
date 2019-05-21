@@ -13,6 +13,10 @@ KEYID=${SIGNING_KEYID:-}
 PASSWORD=${SIGNING_PASSWORD:-}
 GPG_PATH=${GPG_PATH:-./ci-resources}
 
+if [[ -z "$PASSWORD" ]] ; then
+    echo -n 'Enter signing key password passphrase:'
+    read -s PASSWORD
+fi
 
 usage() {
       grep '^#/' <"$0" | cut -c4- # prints the #/ lines above as usage info
