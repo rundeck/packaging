@@ -7,6 +7,8 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.Task
 import org.gradle.api.tasks.*
 
+import org.redline_rpm.header.Flags
+
 class PackageTask extends DefaultTask {
 
     @Input
@@ -229,6 +231,8 @@ class PackageTask extends DefaultTask {
             // Install scripts
             postInstall project.file("$libDir/deb/scripts/postinst")
             if (packageName =~ /enterprise/) {
+                replaces('rundeckpro-cluster', '3.0.9', Flags.LESS | Flags.EQUAL)
+                conflicts('rundeckpro-cluster', '3.0.9', Flags.LESS | Flags.EQUAL)
                 postInstall project.file("$libDir/deb/scripts/postinst-cluster")
             }
             preUninstall "service rundeckd stop"
@@ -263,6 +267,7 @@ class PackageTask extends DefaultTask {
             preInstall project.file("$libDir/rpm/scripts/preinst.sh")
             postInstall project.file("$libDir/rpm/scripts/postinst.sh")
             if (packageName =~ /enterprise/) {
+                obsoletes('rundeckpro-cluster', '3.0.9', Flags.EQUAL | Flags.LESS)
                 postInstall project.file("$libDir/rpm/scripts/postinst-cluster.sh")
             }
             preUninstall project.file("$libDir/rpm/scripts/preuninst.sh")
