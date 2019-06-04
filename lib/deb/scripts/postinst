@@ -68,11 +68,8 @@ setperm rundeck rundeck 0750 /var/lib/rundeck/var
 setperm rundeck rundeck 0750 /var/lib/rundeck/var/tmp
 setperm rundeck rundeck 0750 /var/lib/rundeck/var/tmp/pluginJars
 setperm rundeck rundeck 0700 /var/lib/rundeck/.ssh
-setperm rundeck rundeck 0750 /var/rundeck
-setperm rundeck rundeck 0750 /var/rundeck/projects
 setperm rundeck adm 2751 /var/log/rundeck
 setperm rundeck rundeck 0750 /var/lib/rundeck/bootstrap
-#    setperm rundeck rundeck 0750 /var/lib/rundeck/cli
 setperm rundeck rundeck 0750 /var/lib/rundeck/libext
 setperm rundeck rundeck 0750 /tmp/rundeck
 setperm rundeck rundeck 0750 /etc/rundeck

@@ -1,0 +1,7 @@
+repositories {
+    jcenter()
+}
+
+dependencies {
+    compile 'org.redline-rpm:redline:1.2.7'
+}

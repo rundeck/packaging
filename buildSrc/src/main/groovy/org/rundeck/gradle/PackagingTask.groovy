@@ -7,6 +7,8 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.Task
 import org.gradle.api.tasks.*
 
+import org.redline_rpm.header.Flags
+
 class PackageTask extends DefaultTask {
 
     @Input
@@ -86,50 +88,58 @@ class PackageTask extends DefaultTask {
             signingKeyRingFile = project.findProperty('signingKeyRingFile')
 
             // Create Dirs
-            directory("/etc/rundeck", 0750)
-            directory("/var/log/rundeck", 0775)
-            directory("/var/lib/rundeck", 0755)
-            directory("/var/lib/rundeck/.ssh", 0700)
-            directory("/var/lib/rundeck/bootstrap", 0755)
-            directory("/var/lib/rundeck/cli", 0755)
-            directory("/var/lib/rundeck/cli/lib", 0755)
-            directory("/var/lib/rundeck/cli/bin", 0755)
-            directory("/var/lib/rundeck/logs", 0755)
-            directory("/var/lib/rundeck/data", 0755)
-            directory("/var/lib/rundeck/work", 0755)
-            directory("/var/lib/rundeck/libext", 0755)
-            directory("/var/lib/rundeck/var", 0755)
-            directory("/var/lib/rundeck/var/tmp", 0755)
-            directory("/var/lib/rundeck/var/tmp/pluginJars", 0755)
-            directory("/var/rundeck", 0755)
-            directory("/var/rundeck/projects", 0755)
-            directory("/tmp/rundeck", 1755)
-            directory("/var/lib/rundeck/libext", 0755)
+            directory("/etc/rundeck", 0750, 'rundeck', 'rundeck')
+            directory("/var/log/rundeck", 0775, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck", 0755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/.ssh", 0700, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/bootstrap", 0755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/cli", 0755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/cli/lib", 0755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/cli/bin", 0755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/logs", 0755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/data", 0755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/work", 0755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/libext", 0755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/var", 0755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/var/tmp", 0755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/var/tmp/pluginJars", 0755, 'rundeck', 'rundeck')
+            directory("/tmp/rundeck", 1755, 'rundeck', 'rundeck')
+            directory("/var/lib/rundeck/libext", 0755, 'rundeck', 'rundeck')
 
             from("$libDir/common/etc/rundeck") {
+                into "${rdConfDir}"
+                user 'rundeck'
+                permissionGroup 'rundeck'
                 fileType it.CONFIG | it.NOREPLACE
                 fileMode 0640
-                into "${rdConfDir}"
             }
 
             from("artifacts") {
-                include "${artifact.name}"
                 into "${rdBaseDir}/bootstrap"
+                user 'rundeck'
+                permissionGroup 'rundeck'
+                include "${artifact.name}"
             }
 
             from("$warContentDir/WEB-INF/rundeck/plugins") {
+                into "${rdBaseDir}/libext"
+                user 'rundeck'
+                permissionGroup 'rundeck'
                 include "*.jar"
                 include "*.zip"
                 include "*.groovy"
-                into "${rdBaseDir}/libext"
             }
 
             from("$cliContentDir/bin") {
                 into "$rdBaseDir/cli/bin"
+                user 'rundeck'
+                permissionGroup 'rundeck'
             }
 
             from("$cliContentDir/lib") {
                 into "$rdBaseDir/cli/lib"
+                user 'rundeck'
+                permissionGroup 'rundeck'
             }
             def tools = new File(cliContentDir, "bin").listFiles()*.name
 
@@ -221,6 +231,8 @@ class PackageTask extends DefaultTask {
             // Install scripts
             postInstall project.file("$libDir/deb/scripts/postinst")
             if (packageName =~ /enterprise/) {
+                replaces('rundeckpro-cluster', '3.0.9', Flags.LESS | Flags.EQUAL)
+                conflicts('rundeckpro-cluster', '3.0.9', Flags.LESS | Flags.EQUAL)
                 postInstall project.file("$libDir/deb/scripts/postinst-cluster")
             }
             preUninstall "service rundeckd stop"
@@ -229,13 +241,20 @@ class PackageTask extends DefaultTask {
             // Copy Files
 
             from("$libDir/deb/etc") {
-                fileType CONFIG | NOREPLACE
                 into "/etc"
+                fileType CONFIG | NOREPLACE
             }
         }
 
         def rpmBuild = project.task("build-$packageName-rpm", type: project.Rpm, group: 'build') {
             dependsOn prepareTask
+
+            prefix('/var/lib/rundeck')
+            prefix('/etc/rundeck')
+            prefix('/usr/bin')
+            prefix('/var/log/rundeck')
+            prefix('/etc/rc.d/init.d')
+            prefix('/tmp/rundeck')
 
             applySharedConfig(it)
 
@@ -248,6 +267,7 @@ class PackageTask extends DefaultTask {
             preInstall project.file("$libDir/rpm/scripts/preinst.sh")
             postInstall project.file("$libDir/rpm/scripts/postinst.sh")
             if (packageName =~ /enterprise/) {
+                obsoletes('rundeckpro-cluster', '3.0.9', Flags.EQUAL | Flags.LESS)
                 postInstall project.file("$libDir/rpm/scripts/postinst-cluster.sh")
             }
             preUninstall project.file("$libDir/rpm/scripts/preuninst.sh")
@@ -255,16 +275,18 @@ class PackageTask extends DefaultTask {
 
             // Copy Files
             from("$libDir/rpm/etc/rc.d/init.d/rundeckd") {
-                fileMode 0755
+                into "/etc/rc.d/init.d"
                 user = "root"
                 permissionGroup = "root"
-                into "/etc/rc.d/init.d"
+                fileMode 0755
             }
 
             from("$libDir/rpm/etc/rundeck") {
+                into "${rdConfDir}"
+                user 'rundeck'
+                permissionGroup 'rundeck'
                 fileType CONFIG | NOREPLACE
                 fileMode 0640
-                into "${rdConfDir}"
             }
         }
 
