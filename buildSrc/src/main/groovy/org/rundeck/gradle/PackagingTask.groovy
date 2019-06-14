@@ -233,8 +233,13 @@ class PackageTask extends DefaultTask {
             if (packageName =~ /enterprise/) {
                 replaces('rundeckpro-cluster', '3.0.9', Flags.LESS | Flags.EQUAL)
                 conflicts('rundeckpro-cluster', '3.0.9', Flags.LESS | Flags.EQUAL)
+
+                replaces('rundeckpro-team', '3.0.22', Flags.LESS | Flags.EQUAL)
+                conflicts('rundeckpro-team', '3.0.22', Flags.LESS | Flags.EQUAL)
+
                 postInstall project.file("$libDir/deb/scripts/postinst-cluster")
-            }
+            } 
+
             preUninstall "service rundeckd stop"
             postUninstall project.file("$libDir/deb/scripts/postrm")
 
@@ -268,8 +273,12 @@ class PackageTask extends DefaultTask {
             postInstall project.file("$libDir/rpm/scripts/postinst.sh")
             if (packageName =~ /enterprise/) {
                 obsoletes('rundeckpro-cluster', '3.0.9', Flags.EQUAL | Flags.LESS)
+                obsoletes('rundeckpro-team', '3.0.22', Flags.EQUAL | Flags.LESS)
                 postInstall project.file("$libDir/rpm/scripts/postinst-cluster.sh")
+            } else {
+                conflicts('rundeck-config')
             }
+
             preUninstall project.file("$libDir/rpm/scripts/preuninst.sh")
             postUninstall project.file("$libDir/rpm/scripts/postuninst.sh")
 
