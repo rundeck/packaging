@@ -218,7 +218,7 @@ class PackageTask extends DefaultTask {
 
             // Requirements
             requires('openssh-client')
-            requires('java7-runtime').or('java7-runtime-headless').or('java8-runtime').or('java8-runtime-headless')
+            requires('java8-runtime-headless').or('java8-runtime')
             requires('adduser', '3.11', GREATER | EQUAL)
             requires('uuid-runtime')
             requires('openssl')
@@ -269,6 +269,8 @@ class PackageTask extends DefaultTask {
             if (packageName =~ /enterprise/) {
                 obsoletes('rundeckpro-cluster', '3.0.9', Flags.EQUAL | Flags.LESS)
                 postInstall project.file("$libDir/rpm/scripts/postinst-cluster.sh")
+            } else {
+                obsoletes('rundeck-config')
             }
             preUninstall project.file("$libDir/rpm/scripts/preuninst.sh")
             postUninstall project.file("$libDir/rpm/scripts/postuninst.sh")
