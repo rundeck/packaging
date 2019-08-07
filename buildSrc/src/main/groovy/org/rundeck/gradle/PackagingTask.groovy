@@ -224,9 +224,19 @@ class PackageTask extends DefaultTask {
             requires('openssl')
 
 
-            configurationFile('/etc/rundeck/rundeck-config.properties')
+            configurationFile('/etc/init.d/rundeckd')
+
+            configurationFile('/etc/rundeck/admin.aclpolicy')
+            configurationFile('/etc/rundeck/apitoken.aclpolicy')
+            configurationFile('/etc/rundeck/artifact-repositories.yaml')
             configurationFile('/etc/rundeck/framework.properties')
+            configurationFile('/etc/rundeck/jaas-loginmodule.conf')
+            configurationFile('/etc/rundeck/log4j.properties')
             configurationFile('/etc/rundeck/profile')
+            configurationFile('/etc/rundeck/project.properties')
+            configurationFile('/etc/rundeck/realm.properties')
+            configurationFile('/etc/rundeck/rundeck-config.properties')
+            configurationFile('/etc/rundeck/ssl/ssl.properties')
 
             // Install scripts
             postInstall project.file("$libDir/deb/scripts/postinst")
