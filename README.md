@@ -6,6 +6,10 @@ Consolidated deb and rpm packaging and signing.
 ## Usage
 
 ### Package
+
+> NOTE: Place the built Rundeck war files in `./artifacts` . The build
+parses version information out of the file names, so the names matter!
+
 ```
 ./gradlew \
             -PpackageRelease=$RELEASE_NUM \
