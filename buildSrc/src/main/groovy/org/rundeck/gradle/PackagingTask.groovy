@@ -103,7 +103,6 @@ class PackageTask extends DefaultTask {
             directory("/var/lib/rundeck/var", 0755, 'rundeck', 'rundeck')
             directory("/var/lib/rundeck/var/tmp", 0755, 'rundeck', 'rundeck')
             directory("/var/lib/rundeck/var/tmp/pluginJars", 0755, 'rundeck', 'rundeck')
-            directory("/tmp/rundeck", 1755, 'rundeck', 'rundeck')
             directory("/var/lib/rundeck/libext", 0755, 'rundeck', 'rundeck')
 
             from("$libDir/common/etc/rundeck") {
@@ -264,7 +263,6 @@ class PackageTask extends DefaultTask {
             prefix('/usr/bin')
             prefix('/var/log/rundeck')
             prefix('/etc/rc.d/init.d')
-            prefix('/tmp/rundeck')
 
             applySharedConfig(it)
 

@@ -5,7 +5,6 @@ ETC_DIR="${RPM_INSTALL_PREFIX1:-/etc/rundeck}"
 BIN_DIR="${RPM_INSTALL_PREFIX2:-/usr/bin}"
 LOG_DIR="${RPM_INSTALL_PREFIX3:-/var/log/rundeck}"
 INIT_DIR="${RPM_INSTALL_PREFIX4:-/etc/rc.d/init.d}"
-TMP_DIR="${RPM_INSTALL_PREFIX5:-/tmp/rundeck}"
 
 if [ ! -e ~rundeck/.ssh/id_rsa ]; then
 	su -c "ssh-keygen -q -t rsa -C '' -N '' -f ~rundeck/.ssh/id_rsa" rundeck
@@ -78,10 +77,6 @@ fi
 if [[ "${LOG_DIR}" != "/var/log/rundeck" ]] ; then
     sed -i -E "s#/var/log/rundeck#${LOG_DIR}#g" "${INIT_DIR}/rundeckd"
     sed -i -E "s#/var/log/rundeck#${LOG_DIR}#g" "${LOG4J_CONFIG}"
-fi
-
-if [[ "${TMP_DIR}" != "/tmp/rundeck" ]] ; then
-    sed -i -E "s#/tmp/rundeck#${LOG_DIR}#g" "${DIR}/profile"
 fi
 
 if [[ "$INIT_DIR" == "/etc/rc.d/init.d" ]]; then
