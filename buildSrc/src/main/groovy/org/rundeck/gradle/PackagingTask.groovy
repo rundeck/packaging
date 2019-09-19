@@ -1,5 +1,7 @@
 package org.rundeck.gradle
 
+import static groovy.io.FileType.FILES
+
 import java.util.jar.JarInputStream
 
 import org.gradle.api.DefaultTask
@@ -109,7 +111,7 @@ class PackageTask extends DefaultTask {
                 into "${rdConfDir}"
                 user 'rundeck'
                 permissionGroup 'rundeck'
-                fileType it.CONFIG | it.NOREPLACE
+                fileType CONFIG | NOREPLACE
                 fileMode 0640
             }
 
@@ -222,20 +224,20 @@ class PackageTask extends DefaultTask {
             requires('uuid-runtime')
             requires('openssl')
 
-
             configurationFile('/etc/init.d/rundeckd')
 
-            configurationFile('/etc/rundeck/admin.aclpolicy')
-            configurationFile('/etc/rundeck/apitoken.aclpolicy')
-            configurationFile('/etc/rundeck/artifact-repositories.yaml')
-            configurationFile('/etc/rundeck/framework.properties')
-            configurationFile('/etc/rundeck/jaas-loginmodule.conf')
-            configurationFile('/etc/rundeck/log4j.properties')
-            configurationFile('/etc/rundeck/profile')
-            configurationFile('/etc/rundeck/project.properties')
-            configurationFile('/etc/rundeck/realm.properties')
-            configurationFile('/etc/rundeck/rundeck-config.properties')
-            configurationFile('/etc/rundeck/ssl/ssl.properties')
+            def file = new File("$libDir/common/etc/rundeck")
+
+            def processDir
+            processDir = { File dir, String parent ->
+                dir.listFiles().each { f ->
+                    if (f.isDirectory())
+                        processDir(f, "$parent/$f.name")
+                    else
+                        configurationFile("$parent/$f.name")
+                }
+            }
+            processDir(file, '/etc/rundeck')
 
             // Install scripts
             postInstall project.file("$libDir/deb/scripts/postinst")
