@@ -71,7 +71,6 @@ setperm rundeck rundeck 0700 /var/lib/rundeck/.ssh
 setperm rundeck adm 2751 /var/log/rundeck
 setperm rundeck rundeck 0750 /var/lib/rundeck/bootstrap
 setperm rundeck rundeck 0750 /var/lib/rundeck/libext
-setperm rundeck rundeck 0750 /tmp/rundeck
 setperm rundeck rundeck 0750 /etc/rundeck
 setperm rundeck rundeck 0750 /etc/rundeck/ssl
 find /etc/rundeck/ -maxdepth 2 -type f -print0 | xargs -0 chown rundeck:rundeck
