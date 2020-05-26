@@ -1,14 +1,9 @@
 package org.rundeck.gradle
 
-import static groovy.io.FileType.FILES
-
-import java.util.jar.JarInputStream
-
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.Task
-import org.gradle.api.tasks.*
-
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
 import org.redline_rpm.header.Flags
 
 class PackageTask extends DefaultTask {
@@ -32,7 +27,6 @@ class PackageTask extends DefaultTask {
     String libDir
 
     String warContentDir
-    String cliContentDir
 
     Task deb
 
@@ -54,7 +48,6 @@ class PackageTask extends DefaultTask {
         super.configure(closure)
 
         warContentDir = "$project.buildDir/warContents/$packageName"
-        cliContentDir = "$project.buildDir/cli/$packageName"
 
         configurePackaging()
         this
@@ -95,9 +88,6 @@ class PackageTask extends DefaultTask {
             directory("/var/lib/rundeck", 0755, 'rundeck', 'rundeck')
             directory("/var/lib/rundeck/.ssh", 0700, 'rundeck', 'rundeck')
             directory("/var/lib/rundeck/bootstrap", 0755, 'rundeck', 'rundeck')
-            directory("/var/lib/rundeck/cli", 0755, 'rundeck', 'rundeck')
-            directory("/var/lib/rundeck/cli/lib", 0755, 'rundeck', 'rundeck')
-            directory("/var/lib/rundeck/cli/bin", 0755, 'rundeck', 'rundeck')
             directory("/var/lib/rundeck/logs", 0755, 'rundeck', 'rundeck')
             directory("/var/lib/rundeck/data", 0755, 'rundeck', 'rundeck')
             directory("/var/lib/rundeck/work", 0755, 'rundeck', 'rundeck')
@@ -130,23 +120,6 @@ class PackageTask extends DefaultTask {
                 include "*.zip"
                 include "*.groovy"
             }
-
-            from("$cliContentDir/bin") {
-                into "$rdBaseDir/cli/bin"
-                user 'rundeck'
-                permissionGroup 'rundeck'
-            }
-
-            from("$cliContentDir/lib") {
-                into "$rdBaseDir/cli/lib"
-                user 'rundeck'
-                permissionGroup 'rundeck'
-            }
-            def tools = new File(cliContentDir, "bin").listFiles()*.name
-
-            tools.each { tool ->
-                link("/usr/bin/$tool", "$rdBaseDir/cli/bin/$tool")
-            }
         }
 
         sharedConfig.resolveStrategy = Closure.DELEGATE_FIRST
@@ -160,7 +133,6 @@ class PackageTask extends DefaultTask {
         def prepareTask = project.task("prepare-$packageName") {
             inputs.file artifact.path
 
-            outputs.dir cliContentDir
             outputs.dir warContentDir
 
         }
@@ -170,47 +142,11 @@ class PackageTask extends DefaultTask {
                 into warContentDir
             }
 
-            def contentDir = cliContentDir
-            def cliLibs = new File(contentDir, 'lib')
-            def cliBin = new File(contentDir, 'bin')
-            def cliTmp = new File(contentDir, 'tmp')
-            cliLibs.mkdirs()
-            cliBin.mkdirs()
-            cliTmp.mkdirs()
-            def coreJar = project.fileTree(warContentDir) {
-                include "WEB-INF/lib/rundeck-core-*.jar"
-            }.getSingleFile()
-            project.copy {
-                from coreJar
-                into cliLibs
-            }
-            //get cli tool lib list from manifest of core jar
-            def jar = new JarInputStream(coreJar.newInputStream())
-            def list = jar.manifest.mainAttributes.getValue('Rundeck-Tools-Dependencies')
-            list.split(' ').each { lib ->
-                project.copy {
-                    from new File(warContentDir, "WEB-INF/lib/" + lib)
-                    into cliLibs
-                }
-            }
-
-            //copy cli templates
-            project.copy {
-                from project.zipTree(coreJar)
-                into cliTmp
-                include 'com/dtolabs/rundeck/core/cli/templates/*'
-                exclude '**/*.bat'
-            }
-            project.copy {
-                from new File(cliTmp, 'com/dtolabs/rundeck/core/cli/templates')
-                into cliBin
-            }
         }
 
         def bundle = [:]
         bundle.name = 'cluster'
         bundle.rdBaseDir = "$project.buildDir/package"
-        bundle.cliContentDir = "$project.buildDir/cli"
 
         def debBuild = project.task("build-$packageName-deb", type: project.Deb, group: 'build') {
             dependsOn prepareTask
