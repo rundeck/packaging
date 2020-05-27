@@ -61,10 +61,6 @@ elif [ -z "$JAVA_CMD" ] ; then
   JAVA_CMD=java
 fi
 
-# build classpath without lone : that includes .
-for jar in $(find $RDECK_INSTALL/cli -name '*.jar') ; do
-  CLI_CP=${CLI_CP:+$CLI_CP:}$jar
-done
 for war in $(find $RDECK_INSTALL/bootstrap -name '*.war') ; do
   EXECUTABLE_WAR=$war
 done
