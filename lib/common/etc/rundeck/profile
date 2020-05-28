@@ -73,7 +73,10 @@ RDECK_JVM="-Drundeck.jaaslogin=$JAAS_LOGIN \
            -Dserver.datastore.path=$RDECK_SERVER_DATA/rundeck \
            -Drundeck.server.serverDir=$RDECK_INSTALL \
            -Drdeck.projects=$RDECK_PROJECTS \
+           -Dlog4j.configurationFile=$RDECK_SERVER_CONFIG/log4j2.properties \
+           -Dlogging.config=file:$RDECK_SERVER_CONFIG/log4j2.properties \
            -Drdeck.runlogs=$RUNDECK_LOGDIR \
+           -Drundeck.server.logDir=$RUNDECK_LOGDIR \
            -Drundeck.config.location=$RDECK_CONFIG_FILE \
            -Djava.io.tmpdir=$RUNDECK_TEMPDIR \
            -Drundeck.server.workDir=$RUNDECK_WORKDIR \
