@@ -16,7 +16,7 @@ SSL_CONFIG="${DIR}/ssl/"
 RDECK_CONFIG="$DIR/rundeck-config.properties"
 FW_CONFIG="$DIR/framework.properties"
 PROJECT_CONFIG="$DIR/project.properties"
-LOG4J_CONFIG="$DIR/log4j.properties"
+LOG4J_CONFIG="$DIR/log4j2.properties"
 JAAS_CONFIG="$DIR/jaas-loginmodule.conf"
 
 if [ -f "$DIR/rundeck-config.properties.rpmnew" ]; then
