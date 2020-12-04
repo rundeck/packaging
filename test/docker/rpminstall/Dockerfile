@@ -1,7 +1,7 @@
 # original https://hub.docker.com/r/bwits/rundeck-build/
 FROM rdpro-centos6-util:latest
 MAINTAINER Bill W
-RUN rpm -Uvh  http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+RUN rpm -Uvh  http://archive.fedoraproject.org/pub/archive/epel/6/x86_64/epel-release-6-8.noarch.rpm
 RUN yum -y update
 RUN yum -y install java-1.8.0-openjdk java-1.8.0-openjdk-devel initscripts openssh
 RUN useradd rundeck
