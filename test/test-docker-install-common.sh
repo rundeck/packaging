@@ -21,6 +21,6 @@ run(){
 	DEBS=$(list_debs)
 	for DEB in $DEBS; do
 		echo $DEB
-		docker run --rm -it -v "$PWD:/home/rundeck/rundeck" -e "PACKAGE=$DEB" "$TAG":latest -test
+		docker run -it -v "$PWD:/home/rundeck/rundeck" -e "PACKAGE=$DEB" "$TAG":latest -test
 	done
 }
