@@ -15,7 +15,7 @@ apply plugin: 'nebula.ospackage'
 
 import org.rundeck.gradle.PackageTask
 
-def pPrefix = findProperty('packagePrefix')?: ""
+def pSuffix = findProperty('packageSuffix')?: ""
 def pOrg = findProperty('packageOrg')?: "rundeck"
 def pType = findProperty('packageType')
 def pBundle = findProperty('packageBundle')?: "rundeck"
@@ -76,40 +76,19 @@ def firstFile = artifacts.getFiles().each { file ->
  * Bintray upload stuffs follows. Unfortunately due to the plugin design, only one per project will work.
  * Gradle must be called for each package type(deb, rpm) for each bundle type.
 */
-
-def repoPrefix = pPrefix
-if (vInfo.tag == 'SNAPSHOT') {
-    repoPrefix = 'dev-'
-} else if (vInfo.tag != null ) {
-    repoPrefix = 'test-'
+if (!pSuffix) {
+    if (vInfo.tag == 'SNAPSHOT') {
+        pSuffix = '-dev'
+    } else if (vInfo.tag != null ) {
+        pSuffix = '-test'
+    }
 }
+def repo = "${pOrg}${pSuffix}"
 
-bintray {
-    user = findProperty("bintrayUser")
-    key = findProperty("bintrayApiKey")
-    publish = true
-    override = vInfo.tag == 'SNAPSHOT' ? true : false
-    dryRun = (findProperty('dryRun') ?: 'true').toBoolean()
+task publish(type: Exec) {
+    def distro = 'any/any'
+    if (pType == 'rpm')
+        distro = 'rpm_any/rpm_any'
 
-    filesSpec {
-        from "$buildDir/distributions"
-        include "*$pBundle*.$pType"
-        into "."
-    }
-
-    pkg {
-        repo = "${repoPrefix}${pType}"
-        name = pBundle
-        userOrg = pOrg
-
-        version {
-            name = vInfo.version
-        }
-
-        debian {
-            distribution = 'stable'
-            component = 'main'
-            architecture = 'all'
-        }
-    }
+    commandLine 'bash', '-c', "package_cloud push pagerduty/${repo}/${distro} ${project.buildDir}/distributions/*.${pType}"
 }
