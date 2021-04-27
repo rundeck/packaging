@@ -41,6 +41,7 @@ main() {
     case "${COMMAND}" in
         fetch_artifacts) fetch_artifacts "${@}" ;;
         test) test_packages "${@}" ;;
+        docker_login) docker_login "${@}" ;;
     esac
 }
 
@@ -61,8 +62,13 @@ fetch_artifacts() {
 }
 
 test_packages() {
+    docker_login
     bash test/test-docker-install-deb.sh
     bash test/test-docker-install-rpm.sh
+}
+
+docker_login() {
+    docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 }
 
 (
