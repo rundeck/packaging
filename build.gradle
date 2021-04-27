@@ -16,11 +16,12 @@ apply plugin: 'nebula.ospackage'
 import org.rundeck.gradle.PackageTask
 
 def pSuffix = findProperty('packageSuffix')?: ""
+def pGroup = findProperty('packageGroup')?: "org.rundeck"
 def pOrg = findProperty('packageOrg')?: "rundeck"
 def pType = findProperty('packageType')
 def pBundle = findProperty('packageBundle')?: "rundeck"
 def pRelease = findProperty('packageRelease')?: "1"
-def pInclude = findProperty('packageInclude')?: ".*"
+def pInclude = findProperty('packageInclude')?: '.*.war$'
 
 
 def artifacts = fileTree('artifacts').matching {
@@ -56,6 +57,24 @@ def fileVersionInfo(file) {
 def vInfo = fileVersionInfo(artifacts.getFiles()[0])
 println vInfo
 
+if (!pSuffix) {
+    if (vInfo.tag == 'SNAPSHOT') {
+        pSuffix = '-dev'
+    } else if (vInfo.tag != null ) {
+        pSuffix = '-test'
+    }
+}
+def repo = "${pOrg}${pSuffix}"
+
+def distro = 'any/any'
+if (pType == 'rpm')
+    distro = 'rpm_any/rpm_any'
+else if (pType == 'war' || pType == 'jar')
+    distro = 'java/maven2'
+
+
+task publishWar{}
+task publishAll{dependsOn publishWar}
 task packageArtifacts{}
 def firstFile = artifacts.getFiles().each { file ->
     def fileVersion = fileVersionInfo(file)
@@ -68,27 +87,22 @@ def firstFile = artifacts.getFiles().each { file ->
         packageDescription = 'Rundeck!!!!'
         libDir = "$projectDir/lib"
     }
-
     packageArtifacts.dependsOn pTask
-}
 
-/**
- * Bintray upload stuffs follows. Unfortunately due to the plugin design, only one per project will work.
- * Gradle must be called for each package type(deb, rpm) for each bundle type.
-*/
-if (!pSuffix) {
-    if (vInfo.tag == 'SNAPSHOT') {
-        pSuffix = '-dev'
-    } else if (vInfo.tag != null ) {
-        pSuffix = '-test'
+    def pubWarTask = task "publishWar-$file.name"(type: Exec, group: 'publishing') {
+        def command = [
+            "package_cloud push",
+            "pagerduty/${repo}/java/maven2",
+            "artifacts/${file.name}",
+            "--coordinates=${pGroup}:${vInfo.package}:${vInfo.version}"
+        ].join(' ')
+
+        commandLine 'bash', '-c', command
     }
+    publishWar.dependsOn pubWarTask
 }
-def repo = "${pOrg}${pSuffix}"
 
 task publish(type: Exec) {
-    def distro = 'any/any'
-    if (pType == 'rpm')
-        distro = 'rpm_any/rpm_any'
-
     commandLine 'bash', '-c', "package_cloud push pagerduty/${repo}/${distro} ${project.buildDir}/distributions/*.${pType}"
 }
+publishAll.dependsOn publish

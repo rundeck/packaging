@@ -9,6 +9,7 @@ IFS=$'\n\t'
 readonly ARGS=("$@")
 
 DIST_DIR=${ARGS[0]:-build/distributions}
+ARTIFACTS_DIR=${ARTIFACTS_DIR:-./artifacts}
 KEYID=${SIGNING_KEYID:-}
 PASSWORD=${SIGNING_PASSWORD:-}
 GPG_PATH=${GPG_PATH:-./ci-resources}
@@ -55,6 +56,13 @@ list_debs(){
     echo $PATTERN
 }
 
+list_wars(){
+    local FARGS=("$@")
+    local DIR=${FARGS[0]}
+    local PATTERN="${DIR}/*.war"
+    echo $PATTERN
+}
+
 sign_rpms(){
     local RPMS=$(list_rpms $DIST_DIR)
     echo "=======RPMS======="
@@ -88,10 +96,25 @@ expect {
 END
 }
 
+sign_wars() {
+    local WARS=$(list_wars $ARTIFACTS_DIR)
+
+    IFS=' '
+    for WAR in $WARS; do
+        gpg -u "${KEYID}" \
+            --secret-keyring "${GPG_PATH}/secring.gpg" \
+            --armor \
+            --passphrase-fd 0 \
+            --detach-sign "${WAR}" <<< "${PASSWORD}"
+    done
+    IFS=$'\n\t'
+}
+
 main() {
     check_env
     sign_rpms
     sign_debs
+    sign_wars
 }
 
 (
