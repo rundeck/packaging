@@ -50,6 +50,11 @@ def fileVersionInfo(file) {
     fullVersion += info.date != null ? ".$info.date" : ""
     fullVersion += info.tag != null ? "~$info.tag" : ""
 
+    def fullWarVersion = info.num
+    fullWarVersion += info.date != null ? "-$info.date" : ""
+    fullWarVersion += info.tag != null ? "-$info.tag" : ""
+
+    info.warVersion = fullWarVersion
     info.version = fullVersion
     return info
 }
@@ -94,7 +99,7 @@ def firstFile = artifacts.getFiles().each { file ->
             "package_cloud push",
             "pagerduty/${repo}/java/maven2",
             "artifacts/${file.name}",
-            "--coordinates=${pGroup}:${vInfo.package}:${vInfo.version}"
+            "--coordinates=${pGroup}:${vInfo.package}:${vInfo.warVersion}"
         ].join(' ')
 
         commandLine 'bash', '-c', command
