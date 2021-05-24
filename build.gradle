@@ -97,7 +97,7 @@ def firstFile = artifacts.getFiles().each { file ->
     def pubWarTask = task "publishWar-$file.name"(type: Exec, group: 'publishing') {
         def command = [
             "package_cloud push",
-            "pagerduty/${repo}/java/maven2",
+            "pagerduty/${repo}/anyfile",
             "artifacts/${file.name}",
             "--coordinates=${pGroup}:${vInfo.package}:${vInfo.warVersion}"
         ].join(' ')
@@ -105,6 +105,17 @@ def firstFile = artifacts.getFiles().each { file ->
         commandLine 'bash', '-c', command
     }
     publishWar.dependsOn pubWarTask
+
+    def pubWarAscTask = task "publishWarAsc-$file.name"(type: Exec, group: 'publishing') {
+        def command = [
+            "package_cloud push",
+            "pagerduty/${repo}/anyfile",
+            "artifacts/${file.name}.asc",
+        ].join(' ')
+
+        commandLine 'bash', '-c', command
+    }
+    publishWar.dependsOn pubWarAscTask
 }
 
 task publish(type: Exec) {
