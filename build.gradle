@@ -97,7 +97,7 @@ def firstFile = artifacts.getFiles().each { file ->
     def pubWarTask = task "publishWar-$file.name"(type: Exec, group: 'publishing') {
         def command = [
             "package_cloud push",
-            "pagerduty/${repo}/anyfile",
+            "pagerduty/${repo}/java/maven2",
             "artifacts/${file.name}",
             "--coordinates=${pGroup}:${vInfo.package}:${vInfo.warVersion}"
         ].join(' ')
