@@ -28,7 +28,7 @@ RETVAL=0
 PIDFILE=/var/run/$prog.pid
 DAEMON="${JAVA_HOME:-/usr}/bin/java"
 DAEMON_EXEC="$rundeckd"
-LOG="/var/log/rundeck/service.log"
+LOG="${RUNDECK_LOGDIR/service.log:-/var/log/rundeck/service.log}"
 
 
 start() {
