@@ -39,11 +39,13 @@ wait_for_start(){
 	    (( count += 1 ))  ; # increment attempts counter.
 	    (( count == MAX_ATTEMPTS )) && {
 	        echo >&2 "FAIL: Reached max attempts to find success message in logfile. Exiting."
+		cat "${LOGFILE}"
 	        exit 1
 	    }
 	    #tail -n 5 "$LOGFILE"
 	    service rundeckd status || {
 	        echo >&2 "FAIL: rundeckd is not running. Exiting."
+		cat "${LOGFILE}"
 	        exit 1
 	    }
 	    sleep "$SLEEP"; # wait before trying again.
