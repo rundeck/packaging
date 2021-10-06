@@ -18,7 +18,8 @@ UPSTREAM_PROJECT=${UPSTREAM_PROJECT:-rundeck}
 
 main() {
     S3_ARTIFACT_BASE=${UPSTREAM_ARTIFACT_BASE}/${UPSTREAM_PROJECT:-rundeck}
-
+    echo "packaging S3_ARTIFACT_BASE: $S3_ARTIFACT_BASE"
+    echo "packaging UPSTREAM_TAG: $UPSTREAM_TAG"
     # Location of CI resources such as private keys
     S3_CI_RESOURCES="s3://rundeck-ci-resources/shared/resources"
 
