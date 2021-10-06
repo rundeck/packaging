@@ -22,10 +22,6 @@ die(){
 }
 
 check_env(){
-    echo "packaging SIGNING_KEYID: $SIGNING_KEYID"
-    echo "packaging SIGNING_PASSWORD: $SIGNING_PASSWORD"
-    echo "packaging KEYID: $KEYID"
-    echo "packaging PASSWORD: $PASSWORD"
     if test -z "$KEYID"; then
         die "ENV var SIGNING_KEYID was not set"
     fi
