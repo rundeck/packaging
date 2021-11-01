@@ -47,7 +47,8 @@ main() {
 
 fetch_artifacts() {
     test -d artifacts || mkdir artifacts
-
+    echo $BUILD_TYPE
+    echo $S3_TAG_ARTIFACT_PATH
     if [[ "${BUILD_TYPE}" == "release" ]] ; then
         aws s3 sync --delete "${S3_TAG_ARTIFACT_PATH}" upstream-artifacts
     else
