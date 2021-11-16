@@ -71,7 +71,7 @@ sign_rpms(){
 
     for RPM in $RPMS; do
         PRERPMSHA=$(sha256sum $RPM)
-        echo -------Pre sig sha---------
+        echo -------Pre sig rpm sha---------
         echo "$PRERPMSHA"
     done
     
@@ -91,7 +91,7 @@ END
 
     for RPM in $RPMS; do
         POSTRPMSHA=$(sha256sum $RPM)
-        echo -------Pre sig sha---------
+        echo -------post sig rpm sha---------
         echo "$POSTRPMSHA"
     done
 }
@@ -143,9 +143,9 @@ expect {
 }
 END
 
-for DEB in $DEBS; do
+    for DEB in $DEBS; do
         POSTDEBSHA=$(sha256sum $DEB)
-        echo -------Pre sig sha---------
+        echo -------Post sig sha---------
         echo "$POSTDEBSHA"
     done
 }
