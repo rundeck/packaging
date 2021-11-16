@@ -72,7 +72,7 @@ sign_rpms(){
     for RPM in $RPMS; do
         PRERPMSHA=$(sha256sum $RPM)
         echo -------Pre sig rpm sha---------
-        echo "$PRERPMSHA"
+        echo "$PRERPMSHA for artifact: $RPM"
     done
     
     export GNUPGHOME=$GPG_PATH
@@ -92,7 +92,7 @@ END
     for RPM in $RPMS; do
         POSTRPMSHA=$(sha256sum $RPM)
         echo -------post sig rpm sha---------
-        echo "$POSTRPMSHA"
+        echo "$POSTRPMSHA for artifact: $RPM"
     done
 }
 
@@ -129,7 +129,7 @@ sign_debs(){
     for DEB in $DEBS; do
         PREDEBSHA=$(sha256sum $DEB)
         echo -------Pre sig sha---------
-        echo "$PREDEBSHA"
+        echo "$PREDEBSHA for artifact: $DEB"
     done
 
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
@@ -146,7 +146,7 @@ END
     for DEB in $DEBS; do
         POSTDEBSHA=$(sha256sum $DEB)
         echo -------Post sig sha---------
-        echo "$POSTDEBSHA"
+        echo "$POSTDEBSHA for artifact: $DEB"
     done
 }
 
@@ -156,7 +156,7 @@ sign_wars() {
     for WAR in $WARS; do
         PREWARSHA=$(sha256sum $WAR)
         echo -------Pre sig sha---------
-        echo "$PREWARSHA"
+        echo "$PREWARSHA for artifact: $DEB"
     done
 
     IFS=' '
@@ -172,7 +172,7 @@ sign_wars() {
     for WAR in $WARS; do
         POSTWARSHA=$(sha256sum $WAR)
         echo -------Post sign sha---------
-        echo "$POSTWARSHA"
+        echo "$POSTWARSHA for artifact: $WAR"
     done
 }
 
