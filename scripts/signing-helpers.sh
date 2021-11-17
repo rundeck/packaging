@@ -68,6 +68,13 @@ sign_rpms(){
     local RPMS=$(list_rpms $DIST_DIR)
     echo "=======RPMS======="
     echo $RPMS
+
+    for RPM in $RPMS; do
+        PRERPMSHA=$(sha256sum $RPM)
+        echo -------Pre sig rpm sha---------
+        echo "$PRERPMSHA for artifact: $RPM"
+    done
+    
     export GNUPGHOME=$GPG_PATH
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
 spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$argv 0]" --define "__gpg_sign_cmd %{__gpg} gpg --force-v3-sigs --digest-algo=sha1 --batch --no-verbose --passphrase-fd 3 --no-secmem-warning -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}" --addsign $RPMS
@@ -81,6 +88,12 @@ expect {
     timeout close
 }
 END
+
+    for RPM in $RPMS; do
+        POSTRPMSHA=$(sha256sum $RPM)
+        echo -------post sig rpm sha---------
+        echo "$POSTRPMSHA for artifact: $RPM"
+    done
 }
 
 #/ isgpg2 detects gpg v 2
@@ -111,7 +124,14 @@ END
 sign_debs(){
     local DEBS=$(list_debs $DIST_DIR)
     echo "=======DEBS======="
-    echo $DEBS
+    echo "$DEBS"
+
+    for DEB in $DEBS; do
+        PREDEBSHA=$(sha256sum $DEB)
+        echo -------Pre sig sha---------
+        echo "$PREDEBSHA for artifact: $DEB"
+    done
+
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
 spawn dpkg-sig --gpg-options "-u [lindex \$argv 1] --secret-keyring [lindex \$argv 0]/secring.gpg" --sign builder $DEBS
 set timeout 60
@@ -122,10 +142,22 @@ expect {
     timeout { puts "Timed out!"; exit 1 }
 }
 END
+
+    for DEB in $DEBS; do
+        POSTDEBSHA=$(sha256sum $DEB)
+        echo -------Post sig sha---------
+        echo "$POSTDEBSHA for artifact: $DEB"
+    done
 }
 
 sign_wars() {
     local WARS=$(list_wars $ARTIFACTS_DIR)
+
+    for WAR in $WARS; do
+        PREWARSHA=$(sha256sum $WAR)
+        echo -------Pre sig sha---------
+        echo "$PREWARSHA for artifact: $DEB"
+    done
 
     IFS=' '
     for WAR in $WARS; do
@@ -136,6 +168,12 @@ sign_wars() {
             --detach-sign "${WAR}" <<< "${PASSWORD}"
     done
     IFS=$'\n\t'
+
+    for WAR in $WARS; do
+        POSTWARSHA=$(sha256sum $WAR)
+        echo -------Post sign sha---------
+        echo "$POSTWARSHA for artifact: $WAR"
+    done
 }
 
 export -f check_env
