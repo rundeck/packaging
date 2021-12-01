@@ -31,7 +31,7 @@ main() {
     fi
 
     # Possible artifact locations
-    S3_LATEST_ARTIFACT_PATH="${S3_ARTIFACT_BASE}/branch/master/latest/artifacts"
+    S3_LATEST_ARTIFACT_PATH="${UPSTREAM_ARTIFACT_BASE}/latest/artifacts"
     S3_BUILD_ARTIFACT_PATH="${S3_ARTIFACT_BASE}/branch/${UPSTREAM_BRANCH:-master}/build/${UPSTREAM_BUILD_NUMBER:-}/artifacts"
     S3_TAG_ARTIFACT_PATH="${S3_ARTIFACT_BASE}/tag/${UPSTREAM_TAG}/artifacts"
 
@@ -48,11 +48,10 @@ main() {
 fetch_artifacts() {
     test -d artifacts || mkdir artifacts
     echo $BUILD_TYPE
-    echo $S3_TAG_ARTIFACT_PATH
     if [[ "${BUILD_TYPE}" == "release" ]] ; then
         aws s3 sync --delete "${S3_TAG_ARTIFACT_PATH}" upstream-artifacts
     else
-        aws s3 sync --delete "${S3_BUILD_ARTIFACT_PATH}" upstream-artifacts
+        aws s3 sync --delete "${S3_LATEST_ARTIFACT_PATH}" upstream-artifacts
     fi
 
     aws s3 sync --delete "${S3_CI_RESOURCES}" ci-resources
