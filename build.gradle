@@ -5,12 +5,10 @@ buildscript {
 
     dependencies {
         classpath 'com.netflix.nebula:gradle-ospackage-plugin:4.4.0'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
     }
 }
 
 apply plugin: 'groovy'
-apply plugin: 'com.jfrog.bintray'
 apply plugin: 'nebula.ospackage'
 
 import org.rundeck.gradle.PackageTask
