@@ -75,6 +75,8 @@ setperm rundeck rundeck 0750 /etc/rundeck
 setperm rundeck rundeck 0750 /etc/rundeck/ssl
 find /etc/rundeck/ -maxdepth 2 -type f -print0 | xargs -0 chown rundeck:rundeck
 find /etc/rundeck/ -maxdepth 2 -type f -print0 | xargs -0 chmod 0640
+find /var/lib/rundeck/libext -maxdepth 2 -type f -print0 | xargs -0 chown rundeck:rundeck
+find /var/lib/rundeck/libext -maxdepth 2 -type f -print0 | xargs -0 chmod 0644
 
 # 6. set correct owner/permissions for service.log if it already exists
 [ -f /var/log/rundeck/service.log ] && setperm rundeck adm 0664 /var/log/rundeck/service.log
