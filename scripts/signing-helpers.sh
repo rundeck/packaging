@@ -133,7 +133,7 @@ sign_debs(){
     done
 
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
-spawn dpkg-sig --gpg-options "-u [lindex \$argv 1] --secret-keyring [lindex \$argv 0]/secring.gpg" --sign builder $DEBS
+spawn dpkg-sig --gpg-options "-u [lindex \$argv 1] --secret-keyring [lindex \$argv 0]/secring.gpg" --debug --sign builder $DEBS
 expect {
     # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times
     "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; exp_continue }
