@@ -16,7 +16,7 @@ fi
 main() {
     check_env
     sign_rpms
-    sign_debs
+    #sign_debs
     sign_wars
 }
 
