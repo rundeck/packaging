@@ -74,6 +74,17 @@ sign_rpms(){
         echo -------Pre sig rpm sha---------
         echo "$PRERPMSHA for artifact: $RPM"
     done
+
+
+    expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
+      spawn gpg --import [lindex \$argv 0]/secring.gpg
+        expect {
+            # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times
+            "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; exp_continue }
+            eof { catch wait rc; exit [lindex \$rc 3]; }
+            timeout { puts "Timed out!"; exit 1 }
+        }
+        END
     
     export GNUPGHOME=$GPG_PATH
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
@@ -133,7 +144,20 @@ sign_debs(){
     done
 
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
-spawn dpkg-sig --gpg-options "-u [lindex \$argv 1] --secret-keyring [lindex \$argv 0]/secring.gpg" --sign builder $DEBS
+  spawn gpg --import [lindex \$argv 0]/secring.gpg
+    expect {
+        # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times
+        "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; exp_continue }
+        eof { catch wait rc; exit [lindex \$rc 3]; }
+        timeout { puts "Timed out!"; exit 1 }
+    }
+    END
+
+    GPG_TTY=$(tty)
+    export GPG_TTY
+
+    expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
+spawn dpkg-sig --gpg-options "-u [lindex \$argv 1]" --sign builder $DEBS
 expect {
     # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times
     "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; exp_continue }
