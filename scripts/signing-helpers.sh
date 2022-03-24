@@ -85,6 +85,8 @@ sign_rpms(){
             timeout { puts "Timed out!"; exit 1 }
         }
         END
+
+         echo "=======Post import RPM======="
     
     export GNUPGHOME=$GPG_PATH
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
