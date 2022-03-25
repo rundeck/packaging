@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #!/usr/bin/expect
 #/ helpers
 
