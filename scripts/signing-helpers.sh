@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#!/usr/bin/expect
 #/ helpers
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
@@ -145,15 +146,9 @@ sign_debs(){
         echo "$PREDEBSHA for artifact: $DEB"
     done
 
-expect - -- $GPG_PATH $PASSWORD  <<END
-spawn gpg --import [lindex \$argv 0]/secring.gpg
-expect {
-    # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times
-    "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 1]\r"; log_user 1}
-    eof { catch wait rc; exit [lindex \$rc 3]; }
-    timeout { puts "Timed out!"; exit 1 }
-}
-END
+spawn gpg --import "$GPG_PATH"/secring.gpg
+expect "Please enter the passphrase to import the OpenPGP secret key:"
+send "$PASSWORD"
 
     GPG_TTY=$(tty)
     export GPG_TTY
