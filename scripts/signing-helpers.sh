@@ -1,4 +1,4 @@
-#!/usr/bin/expect
+#!/usr/bin/env bash
 #/ helpers
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
@@ -145,9 +145,9 @@ sign_debs(){
         echo "$PREDEBSHA for artifact: $DEB"
     done
 
-spawn gpg --import "$GPG_PATH"/secring.gpg
-expect "Please enter the passphrase to import the OpenPGP secret key:"
-send "$PASSWORD"
+#spawn gpg --import "$GPG_PATH"/secring.gpg
+#expect "Please enter the passphrase to import the OpenPGP secret key:"
+#send "$PASSWORD"
 
     GPG_TTY=$(tty)
     export GPG_TTY
@@ -167,6 +167,11 @@ END
         echo -------Post sig sha---------
         echo "$POSTDEBSHA for artifact: $DEB"
     done
+}
+
+import_secring(){
+  source "$DIR/signing-expect.sh"
+  import_gpg
 }
 
 sign_wars() {
@@ -203,3 +208,4 @@ export -f sign_debs
 export -f sign_rpms
 export -f isgpg2
 export -f sign_rpms_gpg2
+export -f import_secring
