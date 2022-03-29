@@ -11,7 +11,7 @@ DIST_DIR=${ARGS[0]:-build/distributions}
 ARTIFACTS_DIR=${ARTIFACTS_DIR:-./artifacts}
 KEYID=${SIGNING_KEYID:-}
 PASSWORD=${SIGNING_PASSWORD:-}
-GPG_PATH=${GPG_PATH:-./ci-resources}
+GPG_PATH=${GPG_PATH:-~/circleci/.gnupg}
 SIGNING_KEY_B64=${SIGNING_KEY_B64:-}
 
 usage() {
@@ -88,7 +88,7 @@ sign_rpms(){
 
     echo "=======Post import RPM======="
     
-    export GNUPGHOME=$GPG_PATH
+    #export GNUPGHOME=$GPG_PATH
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
 spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$argv 0]" --define "__gpg_sign_cmd %{__gpg} gpg --force-v3-sigs --digest-algo=sha1 --no-verbose --batch --passphrase-fd 0 --no-secmem-warning -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}" --addsign $RPMS
 expect {
@@ -170,7 +170,7 @@ expect {
 END
 
 echo "POST import 2"
-  
+
 
     GPG_TTY=$(tty)
     export GPG_TTY
