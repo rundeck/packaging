@@ -11,7 +11,7 @@ DIST_DIR=${ARGS[0]:-build/distributions}
 ARTIFACTS_DIR=${ARTIFACTS_DIR:-./artifacts}
 KEYID=${SIGNING_KEYID:-}
 PASSWORD=${SIGNING_PASSWORD:-}
-GPG_PATH=${GPG_PATH:-~/circleci/.gnupg}
+GPG_PATH=${GPG_PATH:-~/.gnupg}
 SIGNING_KEY_B64=${SIGNING_KEY_B64:-}
 
 usage() {
