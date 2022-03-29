@@ -14,7 +14,7 @@ fi
 
 
 main() {
-    import_secring
+   # import_secring
     check_env
     sign_rpms
     sign_debs
