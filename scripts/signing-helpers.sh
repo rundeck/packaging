@@ -145,6 +145,8 @@ sign_debs(){
         echo "$PREDEBSHA for artifact: $DEB"
     done
 
+    echo "PRE import 1"
+
 expect - -- $GPG_PATH $PASSWORD  <<END
 spawn gpg --import [lindex \$argv 0]/secring.gpg
 expect {
@@ -154,6 +156,21 @@ expect {
     timeout { puts "Timed out!"; exit 1 }
 }
 END
+
+  echo "POST import 1"
+
+expect - -- $GPG_PATH $PASSWORD  <<END
+spawn gpg --import [lindex \$argv 0]/secring.gpg
+expect {
+    # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times
+    "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 1]\r"; log_user 1; exp_continue }
+    eof { catch wait rc; exit [lindex \$rc 3]; }
+    timeout { puts "Timed out!"; exit 1 }
+}
+END
+
+echo "POST import 2"
+  
 
     GPG_TTY=$(tty)
     export GPG_TTY
