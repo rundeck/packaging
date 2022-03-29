@@ -16,7 +16,7 @@ fi
 main() {
    # import_secring
     check_env
-    sign_rpms
+    sign_rpms_gpg2
     sign_debs
     sign_wars
 }
