@@ -125,7 +125,7 @@ sign_rpms_gpg2(){
         echo -------Pre sig rpm sha---------
         echo "$PRERPMSHA for artifact: $RPM"
     done
-    
+
     #export GNUPGHOME=$GPG_PATH
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
 spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$argv 0]" --define "__gpg_sign_cmd %{__gpg} gpg --force-v3-sigs --digest-algo=sha1 --no-verbose --pinentry-mode loopback --no-secmem-warning -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}" --addsign $RPMS
@@ -163,7 +163,7 @@ sign_debs(){
     GPG_TTY=$(tty)
     export GPG_TTY
 
-    expect - -- $KEYID $PASSWORD  <<END
+    expect - -- $RUNDECK_SIGNING_KEYID $PASSWORD  <<END
 spawn dpkg-sig --gpg-options "-u [lindex \$argv 1]" --sign builder $DEBS
 expect {
     # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times
