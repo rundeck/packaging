@@ -14,12 +14,20 @@ fi
 
 
 main() {
-   # import_secring
-    check_env
-    sign_rpms_gpg2
-    sign_wars
-    sign_debs
 
+   check_env
+   if isgpg2; then
+      echo "gpg v2 detected"
+      sign_rpms_gpg2
+      sign_debs_gpg2
+      sign_wars_gpg2
+    else
+      echo "gpg v2 not detected"
+      sign_rpms
+      sign_debs
+      sign_wars
+    fi
+}
 }
 
 (

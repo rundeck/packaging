@@ -75,22 +75,10 @@ sign_rpms(){
         echo "$PRERPMSHA for artifact: $RPM"
     done
 
-
-#expect - -- $GPG_PATH $PASSWORD  <<END
-#spawn gpg --import [lindex \$argv 0]/secring.gpg
-#expect {
-#    # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times
-#    "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 1]\r"; log_user 1; exp_continue }
-#    eof { catch wait rc; exit [lindex \$rc 3]; }
-#    timeout { puts "Timed out!"; exit 1 }
-#}
-#ENDg
-
     echo "=======Post import RPM======="
-    
-    #export GNUPGHOME=$GPG_PATH
+
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
-spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$argv 0]" --define "__gpg_sign_cmd %{__gpg} gpg --force-v3-sigs --digest-algo=sha1 --no-verbose --batch --passphrase-fd 0 --no-secmem-warning -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}" --addsign $RPMS
+spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$argv 0]" --define "__gpg_sign_cmd %{__gpg} gpg --force-v3-sigs --digest-algo=sha1 --batch --no-verbose --passphrase-fd 3 --no-secmem-warning -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}" --addsign $RPMS
 expect {
     -re "Enter pass *phrase: *" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; }
     eof { catch wait rc; exit [lindex \$rc 3]; }
@@ -163,6 +151,39 @@ sign_debs(){
     GPG_TTY=$(tty)
     export GPG_TTY
 
+    expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
+spawn dpkg-sig --gpg-options "-u [lindex \$argv 1] --secret-keyring [lindex \$argv 0]/secring.gpg" --sign builder $DEBS
+set timeout 60
+expect {
+    # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times
+    "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 1]\r"; log_user 1; exp_continue }
+    eof { catch wait rc; exit [lindex \$rc 3]; }
+    timeout { puts "Timed out!"; exit 1 }
+}
+END
+
+    for DEB in $DEBS; do
+        POSTDEBSHA=$(sha256sum $DEB)
+        echo -------Post sig sha---------
+        echo "$POSTDEBSHA for artifact: $DEB"
+    done
+}
+
+sign_debs_gpg2(){
+    local DEBS=$(list_debs $DIST_DIR)
+    echo "=======DEBS======="
+    echo "$DEBS"
+
+    for DEB in $DEBS; do
+        PREDEBSHA=$(sha256sum $DEB)
+        echo -------Pre sig sha---------
+        echo "$PREDEBSHA for artifact: $DEB"
+    done
+
+
+    GPG_TTY=$(tty)
+    export GPG_TTY
+
     expect - -- $KEYID $PASSWORD  <<END
 spawn dpkg-sig --gpg-options "-u [lindex \$argv 0] --pinentry-mode loopback" --sign builder $DEBS
 expect {
@@ -180,12 +201,34 @@ END
     done
 }
 
-import_secring(){
-  source "$DIR/signing-expect.sh"
-  import_gpg
+sign_wars() {
+    local WARS=$(list_wars $ARTIFACTS_DIR)
+    echo "=======WARS======="
+
+    for WAR in $WARS; do
+        PREWARSHA=$(sha256sum $WAR)
+        echo -------Pre sig sha---------
+        echo "$PREWARSHA for artifact: $WAR"
+    done
+
+    IFS=' '
+    for WAR in $WARS; do
+        gpg -u "${KEYID}" \
+            --secret-keyring "${GPG_PATH}/secring.gpg" \
+            --armor \
+            --passphrase-fd 0 \
+            --detach-sign "${WAR}" <<< "${PASSWORD}"
+    done
+    IFS=$'\n\t'
+
+    for WAR in $WARS; do
+        POSTWARSHA=$(sha256sum $WAR)
+        echo -------Post sig sha---------
+        echo "$POSTWARSHA for artifact: $WAR"
+    done
 }
 
-sign_wars() {
+sign_wars_gpg2() {
     local WARS=$(list_wars $ARTIFACTS_DIR)
     echo "=======WARS======="
 
@@ -219,4 +262,5 @@ export -f sign_debs
 export -f sign_rpms
 export -f isgpg2
 export -f sign_rpms_gpg2
-export -f import_secring
+export -f sign_wars_gpg2
+export -f sign_debs_gpg2
