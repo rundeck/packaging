@@ -187,6 +187,7 @@ import_secring(){
 
 sign_wars() {
     local WARS=$(list_wars $ARTIFACTS_DIR)
+    echo "=======WARS======="
 
     for WAR in $WARS; do
         PREWARSHA=$(sha256sum $WAR)
@@ -197,7 +198,6 @@ sign_wars() {
     IFS=' '
     for WAR in $WARS; do
         gpg -u "${KEYID}" \
-            --secret-keyring "${GPG_PATH}/secring.gpg" \
             --armor \
             --batch \
             --pinentry-mode loopback \
@@ -207,7 +207,7 @@ sign_wars() {
 
     for WAR in $WARS; do
         POSTWARSHA=$(sha256sum $WAR)
-        echo -------Post sign sha---------
+        echo -------Post sig sha---------
         echo "$POSTWARSHA for artifact: $WAR"
     done
 }
