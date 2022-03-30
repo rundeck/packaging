@@ -163,7 +163,7 @@ sign_debs(){
     GPG_TTY=$(tty)
     export GPG_TTY
 
-    expect - -- $RUNDECK_SIGNING_KEYID $PASSWORD  <<END
+    expect - -- $KEYID $PASSWORD  <<END
 spawn dpkg-sig --gpg-options "-u [lindex \$argv 1]" --sign builder $DEBS
 expect {
     # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times

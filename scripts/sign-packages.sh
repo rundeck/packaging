@@ -17,8 +17,9 @@ main() {
    # import_secring
     check_env
     sign_rpms_gpg2
-    sign_debs
     sign_wars
+    sign_debs
+
 }
 
 (
