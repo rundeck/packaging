@@ -162,6 +162,7 @@ sign_debs(){
 
     GPG_TTY=$(tty)
     export GPG_TTY
+    KEYID=RUNDECK_SIGNING_KEYID
 
     expect - -- $KEYID $PASSWORD  <<END
 spawn dpkg-sig --gpg-options "-u [lindex \$argv 1] --pinentry-mode loopback" --sign builder $DEBS
