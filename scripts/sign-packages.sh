@@ -28,7 +28,6 @@ main() {
       sign_wars
     fi
 }
-}
 
 (
     cd "$DIR/.." || exit 1
