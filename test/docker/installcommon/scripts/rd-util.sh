@@ -24,7 +24,7 @@ wait_for_start(){
 	
 	# Wait for server to start
 	local SUCCESS_MSG="Grails application running"
-	local MAX_ATTEMPTS=60
+	local MAX_ATTEMPTS=30
 	local SLEEP=10
 	echo "Waiting for Rundeck to start. This will take about 2 minutes... "
 	declare -i count=0
