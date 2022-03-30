@@ -54,7 +54,7 @@ fetch_artifacts() {
         aws s3 sync --delete "${S3_LATEST_ARTIFACT_PATH}" upstream-artifacts
     fi
 
-    aws s3 sync --delete "${S3_CI_RESOURCES}" ci-resources
+    aws s3 sync --delete "${S3_CI_RESOURCES}" ~/.gnupg
 
     PATTERN="upstream-artifacts/**/*.war"
     WARS=( $PATTERN )
