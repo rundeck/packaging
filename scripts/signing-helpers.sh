@@ -191,7 +191,7 @@ sign_wars() {
     for WAR in $WARS; do
         PREWARSHA=$(sha256sum $WAR)
         echo -------Pre sig sha---------
-        echo "$PREWARSHA for artifact: $DEB"
+        echo "$PREWARSHA for artifact: $WAR"
     done
 
     IFS=' '
