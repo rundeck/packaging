@@ -164,7 +164,7 @@ sign_debs(){
     export GPG_TTY
 
     expect - -- $KEYID $PASSWORD  <<END
-spawn dpkg-sig --gpg-options "-u [lindex \$argv 1]" --sign builder $DEBS
+spawn dpkg-sig --gpg-options "-u [lindex \$argv 1] --pinentry-mode loopback" --sign builder $DEBS
 expect {
     # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times
     "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 1]\r"; log_user 1; exp_continue }
@@ -200,7 +200,7 @@ sign_wars() {
             --secret-keyring "${GPG_PATH}/secring.gpg" \
             --armor \
             --batch \
-            --passphrase-fd 0 \
+            --pinentry-mode loopback \
             --detach-sign "${WAR}" <<< "${PASSWORD}"
     done
     IFS=$'\n\t'
