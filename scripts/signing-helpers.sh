@@ -148,8 +148,10 @@ sign_debs(){
     done
 
 
-    GPG_TTY=$(tty)
-    export GPG_TTY
+    if tty ; then
+        GPG_TTY=$(tty)
+        export GPG_TTY
+    fi
 
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
 spawn dpkg-sig --gpg-options "-u [lindex \$argv 1] --secret-keyring [lindex \$argv 0]/secring.gpg" --sign builder $DEBS
@@ -180,9 +182,10 @@ sign_debs_gpg2(){
         echo "$PREDEBSHA for artifact: $DEB"
     done
 
-
-    GPG_TTY=$(tty)
-    export GPG_TTY
+    if tty ; then
+        GPG_TTY=$(tty)
+        export GPG_TTY
+    fi
 
     expect - -- $KEYID $PASSWORD  <<END
 spawn dpkg-sig --gpg-options "-u [lindex \$argv 0] --pinentry-mode loopback" --sign builder $DEBS
