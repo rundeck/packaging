@@ -22,7 +22,7 @@ def pRelease = findProperty('packageRelease')?: "1"
 def pInclude = findProperty('packageInclude')?: '.*.war$'
 
 
-def artifacts = fileTree('artifacts').matching {
+def artifacts = fileTree('packaging/artifacts').matching {
     include {
         it.file.name ==~ pInclude
     }
