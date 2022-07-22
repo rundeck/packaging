@@ -13,7 +13,7 @@ set -euo pipefail
 shopt -s globstar
 
 CIRCLE_TAG=${CIRCLE_TAG:-}
-UPSTREAM_ARTIFACT_BASE=${UPSTREAM_ARTIFACT_BASE:-s3://rundeck-ci-artifacts/oss}
+UPSTREAM_ARTIFACT_BASE=${UPSTREAM_ARTIFACT_BASE:-s3://rundeck-ci-artifacts/oss/circle}
 UPSTREAM_PROJECT=${UPSTREAM_PROJECT:-rundeck}
 
 main() {
@@ -56,9 +56,9 @@ fetch_artifacts() {
     echo  "---------S3 Tag path----------"
     echo "$S3_TAG_ARTIFACT_PATH"
     if [[ "${BUILD_TYPE}" == "release" ]] ; then
-        aws s3 sync --delete "${S3_TAG_ARTIFACT_PATH}" upstream-artifacts
+        aws s3 sync --delete "${S3_TAG_ARTIFACT_PATH}" packaging/upstream-artifacts
     else
-        aws s3 sync --delete "${S3_LATEST_ARTIFACT_PATH}" upstream-artifacts
+        aws s3 sync --delete "${S3_LATEST_ARTIFACT_PATH}" packaging/upstream-artifacts
     fi
 
     aws s3 sync --delete "${S3_CI_RESOURCES}" ~/.gnupg
