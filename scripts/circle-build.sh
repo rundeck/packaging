@@ -12,7 +12,7 @@ set -euo pipefail
 
 shopt -s globstar
 
-UPSTREAM_TAG=${UPSTREAM_TAG:-}
+CIRCLE_TAG=${CIRCLE_TAG:-}
 UPSTREAM_ARTIFACT_BASE=${UPSTREAM_ARTIFACT_BASE:-s3://rundeck-ci-artifacts/oss}
 UPSTREAM_PROJECT=${UPSTREAM_PROJECT:-rundeck}
 
@@ -26,7 +26,7 @@ main() {
 
     # Determine build context
     # snapshot | release
-    if [[ ! -z "${UPSTREAM_TAG}" ]] ; then
+    if [[ ! -z "${CIRCLE_TAG}" ]] ; then
         BUILD_TYPE="release"
     else
         BUILD_TYPE="snapshot"
@@ -36,7 +36,7 @@ main() {
     # Possible artifact locations
     S3_LATEST_ARTIFACT_PATH="${UPSTREAM_ARTIFACT_BASE}/latest/artifacts"
     S3_BUILD_ARTIFACT_PATH="${S3_ARTIFACT_BASE}/branch/${UPSTREAM_BRANCH:-master}/build/${UPSTREAM_BUILD_NUMBER:-}/artifacts"
-    S3_TAG_ARTIFACT_PATH="${S3_ARTIFACT_BASE}/tag/${UPSTREAM_TAG}/artifacts"
+    S3_TAG_ARTIFACT_PATH="${S3_ARTIFACT_BASE}/tag/${CIRCLE_TAG}/artifacts"
 
     local COMMAND="${1}"
     shift
