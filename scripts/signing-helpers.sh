@@ -10,7 +10,7 @@ readonly ARGS=("$@")
 DIST_DIR=${ARGS[0]:-build/distributions}
 ARTIFACTS_DIR=${ARTIFACTS_DIR:-./artifacts}
 KEYID=${SIGNING_KEYID:-}
-PASSWORD=${SIGNING_PASSWORD:-}
+PASSWORD=${RUNDECK_SIGNING_PASSWORD:-}
 GPG_PATH=${GPG_PATH:-~/.gnupg}
 SIGNING_KEY_B64=${SIGNING_KEY_B64:-}
 
@@ -26,7 +26,7 @@ check_env(){
         die "ENV var SIGNING_KEYID was not set"
     fi
     if test -z "$PASSWORD"; then
-        die "ENV var SIGNING_PASSWORD was not set"
+        die "ENV var RUNDECK_SIGNING_PASSWORD was not set"
     fi
     if test -z "$GPG_PATH"; then
         die "ENV var GPG_PATH was not set"
