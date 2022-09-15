@@ -92,6 +92,10 @@ END
         POSTRPMSHA=$(sha256sum $RPM)
         echo -------post sig rpm sha---------
         echo "$POSTRPMSHA for artifact: $RPM"
+        if [ "$PRERPMSHA" = "$POSTRPMSHA" ] ; then
+              echo "FAILURE: Signature was not performed: the pre and post SHA are the same"
+              exit 2
+        fi
     done
 }
 
@@ -128,6 +132,10 @@ END
         POSTRPMSHA=$(sha256sum $RPM)
         echo -------post sig rpm sha---------
         echo "$POSTRPMSHA for artifact: $RPM"
+        if [ "$PRERPMSHA" = "$POSTRPMSHA" ] ; then
+              echo "FAILURE: Signature was not performed: the pre and post SHA are the same"
+              exit 2
+        fi
     done
 
 }
@@ -162,6 +170,10 @@ END
         POSTDEBSHA=$(sha256sum $DEB)
         echo -------Post sig sha---------
         echo "$POSTDEBSHA for artifact: $DEB"
+        if [ "$PREDEBSHA" = "$POSTDEBSHA" ] ; then
+              echo "FAILURE: Signature was not performed: the pre and post SHA are the same"
+              exit 2
+        fi
     done
 }
 
@@ -193,6 +205,10 @@ END
         POSTDEBSHA=$(sha256sum $DEB)
         echo -------Post sig sha---------
         echo "$POSTDEBSHA for artifact: $DEB"
+        if [ "$PREDEBSHA" = "$POSTDEBSHA" ] ; then
+              echo "FAILURE: Signature was not performed: the pre and post SHA are the same"
+              exit 2
+        fi
     done
 }
 
@@ -200,11 +216,7 @@ sign_wars() {
     local WARS=$(list_wars $ARTIFACTS_DIR)
     echo "=======WARS======="
 
-    for WAR in $WARS; do
-        PREWARSHA=$(sha256sum $WAR)
-        echo -------Pre sig sha---------
-        echo "$PREWARSHA for artifact: $WAR"
-    done
+
 
     IFS=' '
     for WAR in $WARS; do
@@ -217,21 +229,16 @@ sign_wars() {
     IFS=$'\n\t'
 
     for WAR in $WARS; do
-        POSTWARSHA=$(sha256sum $WAR)
-        echo -------Post sig sha---------
-        echo "$POSTWARSHA for artifact: $WAR"
+        if [ ! -f "${WAR}.asc" ] ; then
+              echo "FAILURE: Signature was not performed: the detached signature for $WAR was not found: ${WAR}.asc"
+              exit 2
+        fi
     done
 }
 
 sign_wars_gpg2() {
     local WARS=$(list_wars $ARTIFACTS_DIR)
     echo "=======WARS======="
-
-    for WAR in $WARS; do
-        PREWARSHA=$(sha256sum $WAR)
-        echo -------Pre sig sha---------
-        echo "$PREWARSHA for artifact: $WAR"
-    done
 
     IFS=' '
     for WAR in $WARS; do
@@ -244,9 +251,10 @@ sign_wars_gpg2() {
     IFS=$'\n\t'
 
     for WAR in $WARS; do
-        POSTWARSHA=$(sha256sum $WAR)
-        echo -------Post sig sha---------
-        echo "$POSTWARSHA for artifact: $WAR"
+        if [ ! -f "${WAR}.asc" ] ; then
+              echo "FAILURE: Signature was not performed: the detached signature for $WAR was not found: ${WAR}.asc"
+              exit 2
+        fi
     done
 }
 
