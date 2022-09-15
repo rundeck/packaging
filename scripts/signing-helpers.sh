@@ -226,7 +226,6 @@ sign_wars() {
             --passphrase-fd 0 \
             --detach-sign "${WAR}" <<< "${PASSWORD}"
     done
-    IFS=$'\n\t'
 
     for WAR in $WARS; do
         if [ ! -f "${WAR}.asc" ] ; then
@@ -234,6 +233,7 @@ sign_wars() {
               exit 2
         fi
     done
+    IFS=$'\n\t'
 }
 
 sign_wars_gpg2() {
@@ -248,7 +248,6 @@ sign_wars_gpg2() {
             --pinentry-mode loopback \
             --detach-sign "${WAR}" <<< "${PASSWORD}"
     done
-    IFS=$'\n\t'
 
     for WAR in $WARS; do
         if [ ! -f "${WAR}.asc" ] ; then
@@ -256,6 +255,7 @@ sign_wars_gpg2() {
               exit 2
         fi
     done
+    IFS=$'\n\t'
 }
 
 export -f check_env
