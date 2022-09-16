@@ -81,17 +81,21 @@ spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$a
 expect {
     -re "Enter pass *phrase: *" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; }
     eof { catch wait rc; exit [lindex \$rc 3]; }
-    timeout { close; exit; }
+    timeout { close; exit 1; }
 }
 expect {
     eof { catch wait rc; exit [lindex \$rc 3]; }
-    timeout close
+    timeout {close; exit 1;}
 }
 END
 
         POSTRPMSHA=$(sha256sum $RPM)
         echo -------post sig rpm sha---------
         echo "$POSTRPMSHA for artifact: $RPM"
+        if [ "$PRERPMSHA" = "$POSTRPMSHA" ] ; then
+              echo "FAILURE: Signature was not performed: the pre and post SHA are the same"
+              exit 2
+        fi
     done
 }
 
@@ -117,17 +121,21 @@ spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$a
 expect {
     -re "Enter pass *phrase: *" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; }
     eof { catch wait rc; exit [lindex \$rc 3]; }
-    timeout { close; exit; }
+    timeout {close; exit 1;}
 }
 expect {
     eof { catch wait rc; exit [lindex \$rc 3]; }
-    timeout close
+    timeout {close; exit 1;}
 }
 END
 
         POSTRPMSHA=$(sha256sum $RPM)
         echo -------post sig rpm sha---------
         echo "$POSTRPMSHA for artifact: $RPM"
+        if [ "$PRERPMSHA" = "$POSTRPMSHA" ] ; then
+              echo "FAILURE: Signature was not performed: the pre and post SHA are the same"
+              exit 2
+        fi
     done
 
 }
@@ -153,7 +161,7 @@ spawn dpkg-sig --gpg-options "-u [lindex \$argv 1] --secret-keyring [lindex \$ar
 set timeout 60
 expect {
     # Passphrase prompt arrives for each deb signed; exp_continue allows this block to execute multiple times
-    "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 1]\r"; log_user 1; exp_continue }
+    "Enter passphrase:" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; exp_continue }
     eof { catch wait rc; exit [lindex \$rc 3]; }
     timeout { puts "Timed out!"; exit 1 }
 }
@@ -162,6 +170,10 @@ END
         POSTDEBSHA=$(sha256sum $DEB)
         echo -------Post sig sha---------
         echo "$POSTDEBSHA for artifact: $DEB"
+        if [ "$PREDEBSHA" = "$POSTDEBSHA" ] ; then
+              echo "FAILURE: Signature was not performed: the pre and post SHA are the same"
+              exit 2
+        fi
     done
 }
 
@@ -193,6 +205,10 @@ END
         POSTDEBSHA=$(sha256sum $DEB)
         echo -------Post sig sha---------
         echo "$POSTDEBSHA for artifact: $DEB"
+        if [ "$PREDEBSHA" = "$POSTDEBSHA" ] ; then
+              echo "FAILURE: Signature was not performed: the pre and post SHA are the same"
+              exit 2
+        fi
     done
 }
 
@@ -200,11 +216,7 @@ sign_wars() {
     local WARS=$(list_wars $ARTIFACTS_DIR)
     echo "=======WARS======="
 
-    for WAR in $WARS; do
-        PREWARSHA=$(sha256sum $WAR)
-        echo -------Pre sig sha---------
-        echo "$PREWARSHA for artifact: $WAR"
-    done
+
 
     IFS=' '
     for WAR in $WARS; do
@@ -214,24 +226,19 @@ sign_wars() {
             --passphrase-fd 0 \
             --detach-sign "${WAR}" <<< "${PASSWORD}"
     done
-    IFS=$'\n\t'
 
     for WAR in $WARS; do
-        POSTWARSHA=$(sha256sum $WAR)
-        echo -------Post sig sha---------
-        echo "$POSTWARSHA for artifact: $WAR"
+        if [ ! -f "${WAR}.asc" ] ; then
+              echo "FAILURE: Signature was not performed: the detached signature for $WAR was not found: ${WAR}.asc"
+              exit 2
+        fi
     done
+    IFS=$'\n\t'
 }
 
 sign_wars_gpg2() {
     local WARS=$(list_wars $ARTIFACTS_DIR)
     echo "=======WARS======="
-
-    for WAR in $WARS; do
-        PREWARSHA=$(sha256sum $WAR)
-        echo -------Pre sig sha---------
-        echo "$PREWARSHA for artifact: $WAR"
-    done
 
     IFS=' '
     for WAR in $WARS; do
@@ -241,13 +248,14 @@ sign_wars_gpg2() {
             --pinentry-mode loopback \
             --detach-sign "${WAR}" <<< "${PASSWORD}"
     done
-    IFS=$'\n\t'
 
     for WAR in $WARS; do
-        POSTWARSHA=$(sha256sum $WAR)
-        echo -------Post sig sha---------
-        echo "$POSTWARSHA for artifact: $WAR"
+        if [ ! -f "${WAR}.asc" ] ; then
+              echo "FAILURE: Signature was not performed: the detached signature for $WAR was not found: ${WAR}.asc"
+              exit 2
+        fi
     done
+    IFS=$'\n\t'
 }
 
 export -f check_env
