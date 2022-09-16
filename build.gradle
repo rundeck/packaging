@@ -80,8 +80,6 @@ task publishWar{}
 task publishAll{dependsOn publishWar}
 task packageArtifacts{}
 def firstFile = artifacts.getFiles().each { file ->
-    println "Entered into the first File method"
-    println projectDir
     def fileVersion = fileVersionInfo(file)
 
     def pTask = task "packageRundeck-$file.name"(type: PackageTask) {

@@ -18,7 +18,6 @@ UPSTREAM_PROJECT=${UPSTREAM_PROJECT:-rundeck}
 
 main() {
 
-    echo "---------Entering main method----------"
     S3_ARTIFACT_BASE=${UPSTREAM_ARTIFACT_BASE}/${UPSTREAM_PROJECT:-rundeck}
 
     # Location of CI resources such as private keys
@@ -32,7 +31,6 @@ main() {
         BUILD_TYPE="snapshot"
     fi
 
-    echo "---------main method LINE 35----------"
     # Possible artifact locations
     S3_LATEST_ARTIFACT_PATH="${UPSTREAM_ARTIFACT_BASE}/latest/artifacts"
     S3_BUILD_ARTIFACT_PATH="${S3_ARTIFACT_BASE}/branch/${UPSTREAM_BRANCH:-master}/build/${UPSTREAM_BUILD_NUMBER:-}/artifacts"
@@ -40,7 +38,6 @@ main() {
 
     local COMMAND="${1}"
     shift
-    echo "---------main method LINE 43----------"
     case "${COMMAND}" in
         fetch_artifacts) fetch_artifacts "${@}" ;;
         test) test_packages "${@}" ;;
@@ -49,12 +46,8 @@ main() {
 }
 
 fetch_artifacts() {
-    echo "------THE TOP OF FETCH ARTIFACTS-------"
     test -d artifacts || mkdir artifacts
-    echo "---------FETCH LINE 54----------"
     echo $BUILD_TYPE
-    echo  "---------S3 Tag path----------"
-    echo "$S3_TAG_ARTIFACT_PATH"
     if [[ "${BUILD_TYPE}" == "release" ]] ; then
         aws s3 sync --delete "${S3_TAG_ARTIFACT_PATH}" upstream-artifacts
     else
