@@ -81,11 +81,11 @@ spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$a
 expect {
     -re "Enter pass *phrase: *" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; }
     eof { catch wait rc; exit [lindex \$rc 3]; }
-    timeout { close; exit; }
+    timeout { close; exit 1; }
 }
 expect {
     eof { catch wait rc; exit [lindex \$rc 3]; }
-    timeout close
+    timeout {close; exit 1;}
 }
 END
 
@@ -121,11 +121,11 @@ spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$a
 expect {
     -re "Enter pass *phrase: *" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; }
     eof { catch wait rc; exit [lindex \$rc 3]; }
-    timeout { close; exit; }
+    timeout {close; exit 1;}
 }
 expect {
     eof { catch wait rc; exit [lindex \$rc 3]; }
-    timeout close
+    timeout {close; exit 1;}
 }
 END
 
