@@ -155,7 +155,8 @@ class PackageTask extends DefaultTask {
 
             // Requirements
             requires('openssh-client')
-            requires('java8-runtime-headless').or('java8-runtime')
+            requires('java11-runtime-headless')
+                    .or('java11-runtime')
             requires('adduser', '3.11', GREATER | EQUAL)
             requires('uuid-runtime')
             requires('openssl')
@@ -208,6 +209,8 @@ class PackageTask extends DefaultTask {
             requires('initscripts')
             requires("openssh")
             requires('openssl')
+            requires('java-11')
+                    .or('jre-11')
 
             // Install scripts
             preInstall project.file("$libDir/rpm/scripts/preinst.sh")
