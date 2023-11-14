@@ -3,6 +3,8 @@ package org.rundeck.gradle
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import org.redline_rpm.header.Flags
 
@@ -14,7 +16,7 @@ class PackageTask extends DefaultTask {
     @Input
     String packageDescription
 
-    @Input
+    @InputFile
     File artifact
 
     @Input
@@ -26,13 +28,19 @@ class PackageTask extends DefaultTask {
     @Input
     String libDir
 
+    @Internal
     String warContentDir
 
+    @Internal
     Task deb
 
+    @Internal
     Task rpm
 
+    @Internal
     def rdConfDir = "/etc/rundeck"
+
+    @Internal
     def rdBaseDir = "/var/lib/rundeck"
 
     @TaskAction
