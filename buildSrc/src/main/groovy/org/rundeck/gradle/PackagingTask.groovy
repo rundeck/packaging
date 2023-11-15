@@ -217,7 +217,9 @@ class PackageTask extends DefaultTask {
             requires('initscripts')
             requires("openssh")
             requires('openssl')
-            requires('java-11')
+            requires('java-11-headless')
+                    .or('jre-11-headless')
+                    .or('java-11')
                     .or('jre-11')
 
             // Install scripts
