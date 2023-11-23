@@ -3,6 +3,8 @@ package org.rundeck.gradle
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import org.redline_rpm.header.Flags
 
@@ -14,7 +16,7 @@ class PackageTask extends DefaultTask {
     @Input
     String packageDescription
 
-    @Input
+    @InputFile
     File artifact
 
     @Input
@@ -26,13 +28,19 @@ class PackageTask extends DefaultTask {
     @Input
     String libDir
 
+    @Internal
     String warContentDir
 
+    @Internal
     Task deb
 
+    @Internal
     Task rpm
 
+    @Internal
     def rdConfDir = "/etc/rundeck"
+
+    @Internal
     def rdBaseDir = "/var/lib/rundeck"
 
     @TaskAction
@@ -155,7 +163,8 @@ class PackageTask extends DefaultTask {
 
             // Requirements
             requires('openssh-client')
-            requires('java8-runtime-headless').or('java8-runtime')
+            requires('java11-runtime-headless')
+                    .or('java11-runtime')
             requires('adduser', '3.11', GREATER | EQUAL)
             requires('uuid-runtime')
             requires('openssl')
@@ -208,6 +217,10 @@ class PackageTask extends DefaultTask {
             requires('initscripts')
             requires("openssh")
             requires('openssl')
+            requires('java-11-headless')
+                    .or('jre-11-headless')
+                    .or('java-11')
+                    .or('jre-11')
 
             // Install scripts
             preInstall project.file("$libDir/rpm/scripts/preinst.sh")

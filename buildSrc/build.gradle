@@ -3,5 +3,5 @@ repositories {
 }
 
 dependencies {
-    compile 'org.redline-rpm:redline:1.2.7'
+    implementation 'org.redline-rpm:redline:1.2.10'
 }
