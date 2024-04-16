@@ -21,7 +21,7 @@ def pType = findProperty('packageType')
 def pBundle = findProperty('packageBundle')?: "rundeck"
 def pRelease = findProperty('packageRelease')?: "1"
 def pInclude = findProperty('packageInclude')?: '.*.war$'
-
+def libsDir = findProperty('libsDir')
 
 def artifacts = fileTree('artifacts').matching {
     include {
@@ -89,7 +89,7 @@ def firstFile = artifacts.getFiles().each { file ->
         packageRelease = pRelease
         packageName = fileVersion.package
         packageDescription = 'Rundeck!!!!'
-        libDir = "$projectDir/lib"
+        libDir = project.file(libsDir)
     }
     packageArtifacts.dependsOn pTask
 
