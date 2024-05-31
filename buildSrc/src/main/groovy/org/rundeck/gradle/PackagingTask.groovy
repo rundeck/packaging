@@ -3,6 +3,7 @@ package org.rundeck.gradle
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
@@ -25,8 +26,8 @@ class PackageTask extends DefaultTask {
     @Input
     String packageRelease
 
-    @Input
-    String libDir
+    @InputDirectory
+    File libDir
 
     @Internal
     String warContentDir
