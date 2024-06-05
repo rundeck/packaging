@@ -193,7 +193,7 @@ sign_debs_gpg2(){
         GPG_TTY=$(tty)
         export GPG_TTY
     fi
-
+    time \
     expect - -- $KEYID $PASSWORD  <<END
 spawn dpkg-sig --gpg-options "-u [lindex \$argv 0] --pinentry-mode loopback" --sign builder $DEB
 set timeout 60
