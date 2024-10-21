@@ -78,7 +78,7 @@ sign_rpms(){
 
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
 spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$argv 0]" --define "__gpg_sign_cmd %{__gpg} gpg --force-v3-sigs --digest-algo sha256 --batch --no-verbose --passphrase-fd 3 --no-secmem-warning -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}" --addsign $RPM
-set timeout 60
+set timeout 120
 expect {
     -re "Enter pass *phrase: *" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; }
     eof { catch wait rc; exit [lindex \$rc 3]; }
@@ -119,7 +119,7 @@ sign_rpms_gpg2(){
     #export GNUPGHOME=$GPG_PATH
     expect - -- $GPG_PATH $KEYID $PASSWORD  <<END
 spawn rpm --define "_gpg_name [lindex \$argv 1]" --define "_gpg_path [lindex \$argv 0]" --define "__gpg_sign_cmd %{__gpg} gpg --force-v3-sigs --digest-algo sha256 --no-verbose --pinentry-mode loopback --no-secmem-warning -u \"%{_gpg_name}\" -sbo %{__signature_filename} %{__plaintext_filename}" --addsign $RPM
-set timeout 60
+set timeout 120
 expect {
     -re "Enter pass *phrase: *" { log_user 0; send -- "[lindex \$argv 2]\r"; log_user 1; }
     eof { catch wait rc; exit [lindex \$rc 3]; }
