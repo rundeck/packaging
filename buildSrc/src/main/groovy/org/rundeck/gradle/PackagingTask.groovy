@@ -164,9 +164,7 @@ class PackageTask extends DefaultTask {
 
             // Requirements
             requires('openssh-client')
-            requires('java11-runtime-headless')
-                    .or('java11-runtime')
-                    .or('java17-runtime-headless')
+            requires('java17-runtime-headless')
                     .or('java17-runtime')
             requires('adduser', '3.11', GREATER | EQUAL)
             requires('uuid-runtime')
@@ -221,11 +219,7 @@ class PackageTask extends DefaultTask {
             requires('initscripts')
             requires('openssh')
             requires('openssl')
-            requires('java-11-headless')
-                    .or('jre-11-headless')
-                    .or('java-11')
-                    .or('jre-11')
-                    .or('java-17-headless')
+            requires('java-17-headless')
                     .or('jre-17-headless')
                     .or('java-17')
                     .or('jre-17')
