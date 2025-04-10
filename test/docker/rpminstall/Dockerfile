@@ -2,7 +2,7 @@
 FROM rdpro-centos7-util:latest
 RUN rpm -Uvh  https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 RUN yum -y update
-RUN yum -y install java-11-openjdk java-11-openjdk-devel initscripts openssh openssl
+RUN yum -y install java-17-openjdk java-17-openjdk-devel initscripts openssh openssl
 RUN useradd rundeck
 #USER rundeck
 
