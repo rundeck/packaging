@@ -7,12 +7,14 @@ Consolidated deb and rpm packaging and signing.
 
 ### Package
 
-> NOTE: Place the built Rundeck war files in `./artifacts` . The build
-parses version information out of the file names, so the names matter!
+> NOTE: Create a directory named `artifacts` in the root directory and place the built Rundeck WAR files there.  
+> The build parses version information out of the file names, so the names matter!
 
+> NOTE: `-PlibsDir` should point to the `Rundeck oss packaging/lib` directory.
 ```
 ./gradlew \
             -PpackageRelease=$RELEASE_NUM \
+            -PlibsDir=../lib \
             clean packageArtifacts
 ```
 
