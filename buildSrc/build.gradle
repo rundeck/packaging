@@ -2,6 +2,13 @@ repositories {
     mavenCentral()
 }
 
+// Mitigate CVE-2024-25710: Force commons-compress to 1.26.2
+configurations.all {
+    resolutionStrategy {
+        force "org.apache.commons:commons-compress:${commonsCompressVersion}"
+    }
+}
+
 dependencies {
     implementation 'org.redline-rpm:redline:1.2.10'
 }
