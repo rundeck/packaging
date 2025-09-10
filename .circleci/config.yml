@@ -1,0 +1,35 @@
+# Java Gradle CircleCI 2.0 configuration file
+# See: https://circleci.com/docs/2.0/language-java/
+version: 2.1
+orbs:
+  snyk: snyk/snyk@2.3 # https://circleci.com/developer/orbs/orb/snyk/snyk
+
+jobs:
+  # Snyk implementation for repos not in PD Org.
+  snyk_test:
+    docker:
+      - image: circleci/openjdk:11-jdk
+    steps:
+      - checkout
+      - run:
+          name: 'Gradle build without running the tests'
+          command: './gradlew assemble' # pull in dependencies but do not run tests
+      - snyk/install
+      - run: snyk config set org='rundeck-core-mtgfa3XPaKGbFtHj9aRXhg'
+      - run:
+          name: Run Snyk monitors to track vulnerabilities on main only
+          command: |
+            if [ "$CIRCLE_BRANCH" = "main" ]; then
+              snyk monitor --all-projects --detection-depth=10 --scan-all-unmanaged
+            else
+              echo "Skipping monitor for non-main branch - no data sent to dashboard"
+            fi
+      - run: snyk test --severity-threshold=high --all-projects --detection-depth=10 --scan-all-unmanaged || true
+
+workflows:
+  version: 2
+  snyk_security:
+    jobs:
+      - snyk_test:
+          context:
+            - Snyk
