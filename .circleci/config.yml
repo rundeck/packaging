@@ -8,12 +8,9 @@ jobs:
   # Snyk implementation for repos not in PD Org.
   snyk_test:
     docker:
-      - image: cimg/openjdk:11-jdk
+      - image: cimg/openjdk:11.0
     steps:
       - checkout
-      - run:
-          name: 'Gradle build without running the tests'
-          command: './gradlew assemble' # pull in dependencies but do not run tests
       - snyk/install
       - run: snyk config set org='rundeck-core-mtgfa3XPaKGbFtHj9aRXhg'
       - run:
