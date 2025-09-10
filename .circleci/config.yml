@@ -11,17 +11,22 @@ jobs:
       - image: cimg/openjdk:11.0
     steps:
       - checkout
+      - run:
+          name: Create dummy artifact for Gradle build
+          command: |
+            mkdir -p artifacts
+            touch artifacts/rundeck-5.0.0-SNAPSHOT-20240101.war
       - snyk/install
       - run: snyk config set org='rundeck-core-mtgfa3XPaKGbFtHj9aRXhg'
       - run:
           name: Run Snyk monitors to track vulnerabilities on main only
           command: |
             if [ "$CIRCLE_BRANCH" = "main" ]; then
-              snyk monitor buildSrc --detection-depth=10
+              snyk monitor --all-projects --detection-depth=10 --scan-all-unmanaged
             else
               echo "Skipping monitor for non-main branch - no data sent to dashboard"
             fi
-      - run: snyk test buildSrc --detection-depth=10 || true # only scan buildSrc.
+      - run: snyk test --all-projects --detection-depth=10 --scan-all-unmanaged || true
 
 workflows:
   version: 2
