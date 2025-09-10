@@ -89,7 +89,7 @@ def firstFile = artifacts.getFiles().each { file ->
         packageRelease = pRelease
         packageName = fileVersion.package
         packageDescription = 'Rundeck!!!!'
-        libDir = project.file(libsDir)
+        libDir = libsDir ? project.file(libsDir) : null
     }
     packageArtifacts.dependsOn pTask
 
