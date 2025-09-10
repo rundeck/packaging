@@ -8,7 +8,7 @@ jobs:
   # Snyk implementation for repos not in PD Org.
   snyk_test:
     docker:
-      - image: circleci/openjdk:11-jdk
+      - image: cimg/openjdk:11-jdk
     steps:
       - checkout
       - run:
