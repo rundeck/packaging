@@ -1,11 +1,17 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
 repositories {
     mavenCentral()
 }
 
 // Mitigate CVE-2024-25710: Force commons-compress to 1.26.2
+// Mitigate SNYK-JAVA-ORGAPACHECOMMONS-10734078: Force commons-lang3 to 3.18.0
 configurations.all {
     resolutionStrategy {
         force "org.apache.commons:commons-compress:${commonsCompressVersion}"
+        force "org.apache.commons:commons-lang3:${commonsLang3Version}"
     }
 }
 
