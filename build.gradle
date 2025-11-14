@@ -29,6 +29,13 @@ def artifacts = fileTree('artifacts').matching {
     }
 }
 
+def archives = fileTree('artifacts').matching {
+    exclude {
+        it.file.name.endsWith('.war')
+    }
+}
+
+
 def fileVersionInfo(file) {
     def m = file.name =~ /(?<flavor>rundeck(pro)?)-(?<bundle>[a-zA-Z]+)?-?(?<version>\d.+?)-((?<tag>[a-zA-Z][a-zA-Z0-9]+)-?)?(?<date>\d.+?)?\.war$/
     if(! m.matches()) {
@@ -78,8 +85,11 @@ else if (pType == 'war' || pType == 'jar')
 
 
 task publishWar{}
-task publishAll{dependsOn publishWar}
+task publishOtherArtifacts{}
+task publishAll{dependsOn publishWar, publishOtherArtifacts}
 task packageArtifacts{}
+
+// Process WAR files
 def firstFile = artifacts.getFiles().each { file ->
     def fileVersion = fileVersionInfo(file)
 
@@ -116,6 +126,46 @@ def firstFile = artifacts.getFiles().each { file ->
     }
     publishWar.dependsOn pubWarAscTask
 }
+
+// Process non-WAR artifacts (rdpl zip files) - publish to private repo
+def rdplZips = fileTree('artifacts').matching {
+    include 'license-cli/build/distributions/*.zip'
+}
+
+rdplZips.getFiles().each { file ->
+    def pubRdplTask = task "publishRdpl-$file.name"(type: Exec, group: 'publishing') {
+        def command = [
+            "package_cloud push",
+            "pagerduty/rundeckpro-lib/anyfile",
+            file.path
+        ].join(' ')
+
+        commandLine 'bash', '-c', command
+    }
+    publishOtherArtifacts.dependsOn pubRdplTask
+}
+
+// Process swagger files
+def swaggerFiles = fileTree('artifacts').matching {
+    include 'rundeck/rundeckapp/build/classes/groovy/main/META-INF/swagger/**/*'
+    exclude '**/*.class'
+}
+
+swaggerFiles.getFiles().each { file ->
+    if (file.isFile()) {
+        def pubSwaggerTask = task "publishSwagger-${file.name}-${file.parentFile.name}"(type: Exec, group: 'publishing') {
+            def command = [
+                "package_cloud push",
+                "pagerduty/${repo}/anyfile",
+                file.path
+            ].join(' ')
+
+            commandLine 'bash', '-c', command
+        }
+        publishOtherArtifacts.dependsOn pubSwaggerTask
+    }
+}
+
 
 task publish(type: Exec) {
     commandLine 'bash', '-c', "package_cloud push pagerduty/${repo}/${distro} ${project.buildDir}/distributions/*.${pType}"
