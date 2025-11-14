@@ -29,13 +29,6 @@ def artifacts = fileTree('artifacts').matching {
     }
 }
 
-def archives = fileTree('artifacts').matching {
-    exclude {
-        it.file.name.endsWith('.war')
-    }
-}
-
-
 def fileVersionInfo(file) {
     def m = file.name =~ /(?<flavor>rundeck(pro)?)-(?<bundle>[a-zA-Z]+)?-?(?<version>\d.+?)-((?<tag>[a-zA-Z][a-zA-Z0-9]+)-?)?(?<date>\d.+?)?\.war$/
     if(! m.matches()) {
