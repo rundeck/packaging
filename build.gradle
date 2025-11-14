@@ -122,7 +122,7 @@ def firstFile = artifacts.getFiles().each { file ->
 
 // Process non-WAR artifacts (rdpl zip files) - publish to private repo
 def rdplZips = fileTree('artifacts').matching {
-    include 'license-cli/build/distributions/*.zip'
+    include '**/*.zip'
 }
 
 rdplZips.getFiles().each { file ->
@@ -140,8 +140,8 @@ rdplZips.getFiles().each { file ->
 
 // Process swagger files
 def swaggerFiles = fileTree('artifacts').matching {
-    include 'rundeck/rundeckapp/build/classes/groovy/main/META-INF/swagger/**/*'
-    exclude '**/*.class'
+    include '**/*.yaml'
+    include '**/*.yml'
 }
 
 swaggerFiles.getFiles().each { file ->
