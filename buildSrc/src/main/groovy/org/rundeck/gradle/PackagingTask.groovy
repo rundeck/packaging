@@ -221,6 +221,11 @@ class PackageTask extends DefaultTask {
             requires('initscripts')
             requires('openssh')
             requires('openssl')
+            // Grails 7: Java 17 required
+            requires('java-17-headless')
+                    .or('jre-17-headless')
+                    .or('java-17')
+                    .or('jre-17')
 
             // Install scripts
             preInstall project.file("$libDir/rpm/scripts/preinst.sh")
