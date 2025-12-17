@@ -7,6 +7,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH=$JAVA_HOME/bin:$PATH
 
 COPY --chown=rundeck:root scripts/rd-util.sh /rd-util.sh
 ADD --chown=rundeck:root scripts/deb-tests.sh /init-tests.sh
