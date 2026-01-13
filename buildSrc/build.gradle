@@ -8,7 +8,7 @@ repositories {
 
 // Mitigate CVE-2024-25710: Force commons-compress to 1.26.2
 // Mitigate SNYK-JAVA-ORGAPACHECOMMONS-10734078: Force commons-lang3 to 3.18.0
-// Mitigate Snyk finding: Force Bouncy Castle dependencies to 1.79
+// Mitigate CVE-2025-8916: Force Bouncy Castle dependencies to 1.79
 configurations.all {
     resolutionStrategy {
         force "org.apache.commons:commons-compress:${commonsCompressVersion}"
