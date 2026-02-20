@@ -12,7 +12,7 @@ repositories {
 configurations.all {
     resolutionStrategy {
         force "org.apache.commons:commons-compress:${commonsCompressVersion}"
-        force "org.apache.commons:commons-lang3:${commonsLang3Version}"
+        // Let Spring Boot BOM manage commons-lang3 version
         force "org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
         force "org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
         
