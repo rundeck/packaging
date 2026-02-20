@@ -7,12 +7,12 @@ repositories {
 }
 
 // Mitigate CVE-2024-25710: Force commons-compress to 1.26.2
-// Mitigate SNYK-JAVA-ORGAPACHECOMMONS-10734078: Force commons-lang3 to 3.18.0
+// SNYK-JAVA-ORGAPACHECOMMONS-10734078 (CVE-2025-48924): commons-lang3 requires 3.18.0+ (managed by Spring Boot BOM)
 // Mitigate CVE-2025-8916: Force Bouncy Castle dependencies to 1.79
 configurations.all {
     resolutionStrategy {
         force "org.apache.commons:commons-compress:${commonsCompressVersion}"
-        // Let Spring Boot BOM manage commons-lang3 version
+        // commons-lang3 version managed by Spring Boot BOM
         force "org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
         force "org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
         
