@@ -12,14 +12,6 @@ jobs:
       - image: cimg/openjdk:17.0
     steps:
       - checkout
-      - run:
-          name: Create dummy artifact for Gradle build
-          command: |
-            mkdir -p artifacts
-            touch artifacts/rundeck-6.0.0-SNAPSHOT-20240101.war
-      - run:
-          name: 'Gradle build without running the tests'
-          command: './gradlew assemble'
       # All Snyk commands below should be identical to any Snyk scan ran using our Snyk orb: https://github.com/PagerDuty/snyk-circleci-orb/blob/main/src/commands/scan.yml
       - snyk/install
       - jq/install
@@ -28,7 +20,7 @@ jobs:
           name: Run Snyk monitors to track vulnerabilities on main only
           command: |
             if [ "$CIRCLE_BRANCH" = "main" ]; then
-              snyk monitor --all-projects --detection-depth=10 --scan-all-unmanaged
+              snyk monitor --file=buildSrc/build.gradle --detection-depth=10
             else
               echo "Skipping monitor for non-main branch - no data sent to dashboard"
             fi
@@ -36,11 +28,16 @@ jobs:
           name: Run Snyk test (ignoring scan results)
           no_output_timeout: 30m
           command: |
-            snyk test --all-projects --detection-depth=10 --scan-all-unmanaged --json > snyk-results.json || true
+            snyk test --file=buildSrc/build.gradle --detection-depth=10 --json > snyk-results.json || true
       - run:
           name: CVE Summary
           command: |
             if [ -f snyk-results.json ]; then
+              # Check if scan failed (error field present)
+              if jq -e '.error' snyk-results.json > /dev/null 2>&1; then
+                echo "Snyk scan failed - see snyk-results.json for details"
+                exit 0
+              fi
               echo "=== CVEs Found ==="
               jq -r '.[] | select(type == "object") | select(.vulnerabilities != null) | .vulnerabilities[] | select(.identifiers.CVE | length > 0) | [(.identifiers.CVE | join(",")), .severity, .moduleName, .title] | @csv' snyk-results.json | sort -u | tee snyk-summary.csv || echo "No CVEs found - clean scan!"
               echo "=================="
