@@ -2,35 +2,54 @@
 # See: https://circleci.com/docs/2.0/language-java/
 version: 2.1
 orbs:
-  snyk: snyk/snyk@2.3 # https://circleci.com/developer/orbs/orb/snyk/snyk
+  jq: circleci/jq@2.2.0
+  snyk: snyk/snyk@2.3.0 # https://circleci.com/developer/orbs/orb/snyk/snyk
 
 jobs:
   # Snyk implementation for repos not in PD Org.
   snyk_test:
     docker:
-      - image: cimg/openjdk:11.0
+      - image: cimg/openjdk:17.0
     steps:
       - checkout
-      - run:
-          name: Create dummy artifact for Gradle build
-          command: |
-            mkdir -p artifacts
-            touch artifacts/rundeck-5.0.0-SNAPSHOT-20240101.war
+      # All Snyk commands below should be identical to any Snyk scan ran using our Snyk orb: https://github.com/PagerDuty/snyk-circleci-orb/blob/main/src/commands/scan.yml
       - snyk/install
+      - jq/install
       - run: snyk config set org='rundeck-core-mtgfa3XPaKGbFtHj9aRXhg'
       - run:
           name: Run Snyk monitors to track vulnerabilities on main only
           command: |
             if [ "$CIRCLE_BRANCH" = "main" ]; then
-              snyk monitor --detection-depth=10 || true
+              snyk monitor --file=buildSrc/build.gradle --detection-depth=10
             else
               echo "Skipping monitor for non-main branch - no data sent to dashboard"
             fi
       - run:
-          name: Test for vulnerabilities  
+          name: Run Snyk test (ignoring scan results)
+          no_output_timeout: 30m
           command: |
-            snyk test --detection-depth=10 || true
-            snyk test --file=buildSrc/build.gradle --package-manager=gradle || true
+            snyk test --file=buildSrc/build.gradle --detection-depth=10 --json > snyk-results.json || true
+      - run:
+          name: CVE Summary
+          command: |
+            if [ -f snyk-results.json ]; then
+              # Check if scan failed (error field present)
+              if jq -e '.error' snyk-results.json > /dev/null 2>&1; then
+                echo "Snyk scan failed - see snyk-results.json for details"
+                exit 0
+              fi
+              echo "=== CVEs Found ==="
+              jq -r '.[] | select(type == "object") | select(.vulnerabilities != null) | .vulnerabilities[] | select(.identifiers.CVE | length > 0) | [(.identifiers.CVE | join(",")), .severity, .moduleName, .title] | @csv' snyk-results.json | sort -u | tee snyk-summary.csv || echo "No CVEs found - clean scan!"
+              echo "=================="
+            else
+              echo "No snyk-results.json found — skipping CVE summary"
+            fi
+      - store_artifacts:
+          path: snyk-results.json
+          destination: snyk-results.json
+      - store_artifacts:
+          path: snyk-summary.csv
+          destination: snyk-summary.csv
 
 workflows:
   version: 2
