@@ -137,7 +137,7 @@ class PackageTask extends DefaultTask {
     }
 
     def configurePackaging() {
-        project.pluginManager.apply('nebula.ospackage')
+        project.pluginManager.apply('com.netflix.nebula.ospackage')
 
         def prepareTask = project.task("prepare-$packageName") {
             inputs.file artifact.path
