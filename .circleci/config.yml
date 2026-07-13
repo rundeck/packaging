@@ -9,7 +9,7 @@ jobs:
   # Snyk implementation for repos not in PD Org.
   snyk_test:
     docker:
-      - image: cimg/openjdk:17.0.19
+      - image: cimg/openjdk:25.0.3
     steps:
       - checkout
       # All Snyk commands below should be identical to any Snyk scan ran using our Snyk orb: https://github.com/PagerDuty/snyk-circleci-orb/blob/main/src/commands/scan.yml
