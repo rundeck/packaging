@@ -11,6 +11,44 @@ import org.redline_rpm.header.Flags
 
 class PackageTask extends DefaultTask {
 
+    // Grails 7 requires Java 17+; system requirements say 17-25 are supported.
+    // Newest-first: see addDebJavaRequirement() for why order matters there.
+    static final List<Integer> SUPPORTED_JAVA_MAJOR_VERSIONS = [25, 21, 17]
+
+    /**
+     * RPM's classic dependency model is AND-only - there's no per-Dependency
+     * OR/alternative semantics. The newer rich/boolean dependency syntax
+     * (`Requires: (A or B or C)`, supported by rpm/dnf on RHEL 8+ since rpm
+     * 4.13) is the only way to express "one of several packages", and
+     * redline-rpm (this plugin's RPM writer) has no typed API for it - but it
+     * does write whatever literal string is passed as the dependency name
+     * verbatim. `.or()` chaining (used for deb, see addDebJavaRequirement) is
+     * silently dropped for RPM: RpmCopyAction.addDependency only reads
+     * packageName/flag/version off the *first* Dependency, never its
+     * `.alternative` chain (confirmed by inspecting a built RPM's raw
+     * REQUIRENAME header - only the first name ever appeared, regardless of
+     * how many `.or()` calls were chained).
+     */
+    static String rpmJavaHeadlessRequirement(List<Integer> majorVersions = SUPPORTED_JAVA_MAJOR_VERSIONS) {
+        def names = majorVersions.collectMany { v -> ["java-${v}-headless", "jre-${v}-headless", "java-${v}", "jre-${v}"] }
+        "(${names.join(' or ')})"
+    }
+
+    /**
+     * Debian's OpenJDK packages provide java<N>-runtime(-headless) virtual
+     * packages by convention, and `.or()` chaining works correctly here
+     * (unlike rpm - see rpmJavaHeadlessRequirement). List newest-first:
+     * apt/dpkg pick the first satisfiable alternative in list order, not
+     * whichever is already installed, so oldest-first can pull in an
+     * unneeded older JDK alongside a newer one that's already present
+     * (harmless - both coexist and install still succeeds - but wasteful).
+     */
+    static void addDebJavaRequirement(delegate, List<Integer> majorVersions = SUPPORTED_JAVA_MAJOR_VERSIONS) {
+        def names = majorVersions.collectMany { v -> ["java${v}-runtime-headless", "java${v}-runtime"] }
+        def dep = delegate.requires(names[0])
+        names.drop(1).each { dep = dep.or(it) }
+    }
+
     @Input
     String packageName
 
@@ -164,8 +202,7 @@ class PackageTask extends DefaultTask {
 
             // Requirements
             requires('openssh-client')
-            requires('java17-runtime-headless')
-                    .or('java17-runtime')
+            addDebJavaRequirement(it)
             requires('adduser', '3.11', GREATER | EQUAL)
             requires('uuid-runtime')
             requires('openssl')
@@ -219,11 +256,7 @@ class PackageTask extends DefaultTask {
             requires('initscripts')
             requires('openssh')
             requires('openssl')
-            // Grails 7: Java 17 required
-            requires('java-17-headless')
-                    .or('jre-17-headless')
-                    .or('java-17')
-                    .or('jre-17')
+            requires(rpmJavaHeadlessRequirement())
 
             // Install scripts
             preInstall project.file("$libDir/rpm/scripts/preinst.sh")

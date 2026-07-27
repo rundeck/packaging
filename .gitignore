@@ -4,3 +4,4 @@ build
 ci-resources
 upstream-artifacts
 temp/
+.local-test-fixture
