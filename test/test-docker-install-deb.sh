@@ -2,7 +2,7 @@
 
 LDIR=$( cd $(dirname $0) ; echo $PWD )
 export DIR=test/docker/debinstall
-export COMMON="ubuntu1604"
+export COMMON="ubuntu2204"
 export PACKAGE_TYPE="deb"
 
 . "$LDIR/test-docker-install-common.sh"
