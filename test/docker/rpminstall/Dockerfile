@@ -1,9 +1,9 @@
 # original https://hub.docker.com/r/bwits/rundeck-build/
-FROM rdpro-centos7-util:latest
-RUN rpm -Uvh  https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-RUN yum -y update
-# Grails 7: Java 17 required
-RUN yum -y install java-17-openjdk java-17-openjdk-devel initscripts openssh openssl
+FROM rdpro-rhel8-util:latest
+RUN dnf -y update
+# Grails 7: Java 17 required (Rundeck 6.0 supports Java 17-25; UBI8 already
+# provides chkconfig/initscripts/openssh/openssl via BaseOS/AppStream, no EPEL needed)
+RUN dnf -y install java-17-openjdk java-17-openjdk-devel initscripts openssh openssl
 RUN useradd rundeck
 #USER rundeck
 
