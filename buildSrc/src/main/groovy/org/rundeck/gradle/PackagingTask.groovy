@@ -149,7 +149,7 @@ class PackageTask extends DefaultTask {
                 user 'rundeck'
                 permissionGroup 'rundeck'
                 fileType CONFIG | NOREPLACE
-                fileMode 0640
+                filePermissions { unix(0640) }
             }
 
             from("artifacts") {
@@ -275,7 +275,7 @@ class PackageTask extends DefaultTask {
                 into "/etc/rc.d/init.d"
                 user = "root"
                 permissionGroup = "root"
-                fileMode 0755
+                filePermissions { unix(0755) }
             }
 
             from("$libDir/rpm/etc/rundeck") {
@@ -283,7 +283,7 @@ class PackageTask extends DefaultTask {
                 user 'rundeck'
                 permissionGroup 'rundeck'
                 fileType CONFIG | NOREPLACE
-                fileMode 0640
+                filePermissions { unix(0640) }
             }
         }
 
