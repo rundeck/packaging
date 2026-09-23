@@ -3,6 +3,17 @@ buildscript {
         mavenCentral()
     }
 
+    // CVE-2026-78254: Ant's ftp/scp tasks could be made to write outside the destination
+    // directory via a malicious/MITM server supplying relative paths (CWE-23). Fixed in 1.10.18.
+    // Pulled onto the buildscript/plugin classpath transitively via nebula.ospackage ->
+    // redline-rpm (1.10.11) and jdeb (1.10.12), resolving to 1.10.12 by conflict resolution -
+    // not used by any ftp/scp task in this build, but forced here as defense in depth.
+    configurations.classpath {
+        resolutionStrategy {
+            force "org.apache.ant:ant:${antVersion}"
+            force "org.apache.ant:ant-launcher:${antVersion}"
+        }
+    }
 }
 
 plugins {

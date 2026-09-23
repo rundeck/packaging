@@ -15,7 +15,11 @@ configurations.all {
         force "org.apache.commons:commons-lang3:${commonsLang3Version}"
         force "org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}"
         force "org.bouncycastle:bcprov-jdk18on:${bouncyCastleVersion}"
-        
+        // CVE-2026-78254: Ant ftp/scp relative path traversal (CWE-23), fixed in 1.10.18.
+        // Pulled transitively via the org.redline-rpm:redline dependency below.
+        force "org.apache.ant:ant:${antVersion}"
+        force "org.apache.ant:ant-launcher:${antVersion}"
+
         // Replace jdk15on variants with jdk18on
         dependencySubstitution {
             substitute module('org.bouncycastle:bcpg-jdk15on') using module("org.bouncycastle:bcpg-jdk18on:${bouncyCastleVersion}")
